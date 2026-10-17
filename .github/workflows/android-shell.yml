@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       site_url:
-        description: "要加载的自部署站点地址（https://…）"
+        description: https://zrehcbcsqewjdnbruaos.supabase.co/rest/v1/
         required: false
         type: string
   push:
