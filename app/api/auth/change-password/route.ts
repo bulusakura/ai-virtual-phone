@@ -1,36 +1,48 @@
-export const runtime = "edge";
+import { NextResponse } from "next/server";
 
-export async function GET() {
-  return new Response(JSON.stringify({ok: false, error: "disabled on static deploy"}), {
-    status: 200,
-    headers: {"content-type": "application/json", "Cache-Control": "no-store"},
-  });
-}
+import {
+  cleanAccountText,
+  findUserById,
+  getCurrentAccount,
+  updateUserPassword,
+  verifyPassword,
+} from "@/lib/server/account-auth";
+import { formatSupabaseRestError, getSupabaseServerConfig } from "@/lib/server/supabase-rest";
 
-export async function POST() {
-  return new Response(JSON.stringify({ok: false, error: "disabled on static deploy"}), {
-    status: 200,
-    headers: {"content-type": "application/json", "Cache-Control": "no-store"},
-  });
-}
+export async function POST(request: Request) {
+  try {
+    if (!getSupabaseServerConfig()) {
+      return NextResponse.json({ ok: false, error: "Supabase 环境变量未配置。" }, { status: 503 });
+    }
+    const account = await getCurrentAccount(request);
+    if (!account) {
+      return NextResponse.json({ ok: false, error: "未登录。" }, { status: 401 });
+    }
 
-export async function PUT() {
-  return new Response(JSON.stringify({ok: false, error: "disabled on static deploy"}), {
-    status: 200,
-    headers: {"content-type": "application/json", "Cache-Control": "no-store"},
-  });
-}
+    const record = await request.json().catch(() => ({})) as Record<string, unknown>;
+    const oldPassword = cleanAccountText(record.oldPassword, 120);
+    const newPassword = cleanAccountText(record.newPassword, 120);
+    if (!oldPassword || !newPassword) {
+      return NextResponse.json({ ok: false, error: "请填写当前密码和新密码。" }, { status: 400 });
+    }
+    if (newPassword.length < 6) {
+      return NextResponse.json({ ok: false, error: "新密码至少需要 6 位。" }, { status: 400 });
+    }
+    if (newPassword === oldPassword) {
+      return NextResponse.json({ ok: false, error: "新密码不能与当前密码相同。" }, { status: 400 });
+    }
 
-export async function PATCH() {
-  return new Response(JSON.stringify({ok: false, error: "disabled on static deploy"}), {
-    status: 200,
-    headers: {"content-type": "application/json", "Cache-Control": "no-store"},
-  });
-}
+    const user = await findUserById(account.id);
+    if (!user || !verifyPassword(oldPassword, cleanAccountText(user.password_hash, 300))) {
+      return NextResponse.json({ ok: false, error: "当前密码不正确。" }, { status: 400 });
+    }
 
-export async function DELETE() {
-  return new Response(JSON.stringify({ok: false, error: "disabled on static deploy"}), {
-    status: 200,
-    headers: {"content-type": "application/json", "Cache-Control": "no-store"},
-  });
+    await updateUserPassword(account.id, newPassword);
+    return NextResponse.json({ ok: true });
+  } catch (err) {
+    return NextResponse.json(
+      { ok: false, error: formatSupabaseRestError(err instanceof Error ? err.message : String(err)) },
+      { status: 500 },
+    );
+  }
 }

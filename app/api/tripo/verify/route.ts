@@ -1,36 +1,23 @@
-export const runtime = "edge";
+import { NextRequest, NextResponse } from "next/server";
+import { tripoFetch } from "../proxy-fetch";
 
-export async function GET() {
-  return new Response(JSON.stringify({ok: false, error: "disabled on static deploy"}), {
-    status: 200,
-    headers: {"content-type": "application/json", "Cache-Control": "no-store"},
-  });
-}
+const BASE = "https://api.tripo3d.ai/v2/openapi";
 
-export async function POST() {
-  return new Response(JSON.stringify({ok: false, error: "disabled on static deploy"}), {
-    status: 200,
-    headers: {"content-type": "application/json", "Cache-Control": "no-store"},
-  });
-}
+export async function POST(req: NextRequest) {
+  try {
+    const { apiKey } = await req.json();
+    if (!apiKey) return NextResponse.json({ ok: false, error: "缺少 API Key" });
 
-export async function PUT() {
-  return new Response(JSON.stringify({ok: false, error: "disabled on static deploy"}), {
-    status: 200,
-    headers: {"content-type": "application/json", "Cache-Control": "no-store"},
-  });
-}
+    const res = await tripoFetch(`${BASE}/user/balance`, {
+      headers: { Authorization: `Bearer ${apiKey}` },
+    });
+    const data = await res.json();
 
-export async function PATCH() {
-  return new Response(JSON.stringify({ok: false, error: "disabled on static deploy"}), {
-    status: 200,
-    headers: {"content-type": "application/json", "Cache-Control": "no-store"},
-  });
-}
-
-export async function DELETE() {
-  return new Response(JSON.stringify({ok: false, error: "disabled on static deploy"}), {
-    status: 200,
-    headers: {"content-type": "application/json", "Cache-Control": "no-store"},
-  });
+    if (data.code === 0) {
+      return NextResponse.json({ ok: true, balance: data.data?.balance });
+    }
+    return NextResponse.json({ ok: false, error: data.message || "验证失败" });
+  } catch (e: any) {
+    return NextResponse.json({ ok: false, error: e.message });
+  }
 }

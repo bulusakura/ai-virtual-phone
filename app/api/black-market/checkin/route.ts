@@ -1,36 +1,25 @@
-export const runtime = "edge";
+import { NextResponse } from "next/server";
 
-export async function GET() {
-  return new Response(JSON.stringify({ok: false, error: "disabled on static deploy"}), {
-    status: 200,
-    headers: {"content-type": "application/json", "Cache-Control": "no-store"},
-  });
-}
+import { getCurrentAccount } from "@/lib/server/account-auth";
+import { checkInBlackMarketCloud, mapBlackMarketCloudError } from "@/lib/server/black-market-cloud";
+import { formatSupabaseRestError, getSupabaseServerConfig } from "@/lib/server/supabase-rest";
 
-export async function POST() {
-  return new Response(JSON.stringify({ok: false, error: "disabled on static deploy"}), {
-    status: 200,
-    headers: {"content-type": "application/json", "Cache-Control": "no-store"},
-  });
-}
-
-export async function PUT() {
-  return new Response(JSON.stringify({ok: false, error: "disabled on static deploy"}), {
-    status: 200,
-    headers: {"content-type": "application/json", "Cache-Control": "no-store"},
-  });
-}
-
-export async function PATCH() {
-  return new Response(JSON.stringify({ok: false, error: "disabled on static deploy"}), {
-    status: 200,
-    headers: {"content-type": "application/json", "Cache-Control": "no-store"},
-  });
-}
-
-export async function DELETE() {
-  return new Response(JSON.stringify({ok: false, error: "disabled on static deploy"}), {
-    status: 200,
-    headers: {"content-type": "application/json", "Cache-Control": "no-store"},
-  });
+export async function POST(request: Request) {
+  try {
+    if (!getSupabaseServerConfig()) {
+      return NextResponse.json({ ok: false, error: "Supabase 环境变量未配置。" }, { status: 503 });
+    }
+    const account = await getCurrentAccount(request);
+    if (!account) {
+      return NextResponse.json({ ok: false, error: "请先登录账号。" }, { status: 401 });
+    }
+    const wallet = await checkInBlackMarketCloud(account);
+    return NextResponse.json({ ok: true, wallet });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    return NextResponse.json(
+      { ok: false, error: mapBlackMarketCloudError(formatSupabaseRestError(message)) },
+      { status: getSupabaseServerConfig() ? 400 : 503 },
+    );
+  }
 }

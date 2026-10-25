@@ -1,36 +1,24 @@
-export const runtime = "edge";
+import { NextResponse } from "next/server";
 
-export async function GET() {
-  return new Response(JSON.stringify({ok: false, error: "disabled on static deploy"}), {
-    status: 200,
-    headers: {"content-type": "application/json", "Cache-Control": "no-store"},
-  });
-}
+import { getCurrentAccount } from "@/lib/server/account-auth";
+import { getOrCreateVapidConfig } from "@/lib/server/push-service";
+import { formatSupabaseRestError, getSupabaseServerConfig } from "@/lib/server/supabase-rest";
 
-export async function POST() {
-  return new Response(JSON.stringify({ok: false, error: "disabled on static deploy"}), {
-    status: 200,
-    headers: {"content-type": "application/json", "Cache-Control": "no-store"},
-  });
-}
-
-export async function PUT() {
-  return new Response(JSON.stringify({ok: false, error: "disabled on static deploy"}), {
-    status: 200,
-    headers: {"content-type": "application/json", "Cache-Control": "no-store"},
-  });
-}
-
-export async function PATCH() {
-  return new Response(JSON.stringify({ok: false, error: "disabled on static deploy"}), {
-    status: 200,
-    headers: {"content-type": "application/json", "Cache-Control": "no-store"},
-  });
-}
-
-export async function DELETE() {
-  return new Response(JSON.stringify({ok: false, error: "disabled on static deploy"}), {
-    status: 200,
-    headers: {"content-type": "application/json", "Cache-Control": "no-store"},
-  });
+export async function GET(request: Request) {
+  try {
+    if (!getSupabaseServerConfig()) {
+      return NextResponse.json({ ok: false, error: "Supabase 环境变量未配置。" }, { status: 503 });
+    }
+    const account = await getCurrentAccount(request);
+    if (!account) {
+      return NextResponse.json({ ok: false, error: "未登录。" }, { status: 401 });
+    }
+    const vapid = await getOrCreateVapidConfig();
+    return NextResponse.json({ ok: true, publicKey: vapid.publicKey });
+  } catch (err) {
+    return NextResponse.json(
+      { ok: false, error: formatSupabaseRestError(err instanceof Error ? err.message : String(err)) },
+      { status: 500 },
+    );
+  }
 }

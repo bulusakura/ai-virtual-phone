@@ -1,36 +1,25 @@
-export const runtime = "edge";
+import { NextResponse } from "next/server";
 
-export async function GET() {
-  return new Response(JSON.stringify({ok: false, error: "disabled on static deploy"}), {
-    status: 200,
-    headers: {"content-type": "application/json", "Cache-Control": "no-store"},
-  });
-}
+import { ACCOUNT_SESSION_COOKIE, deleteSessionToken, readCookie } from "@/lib/server/account-auth";
+import { ACCOUNT_GATE_COOKIE } from "@/lib/account-cookie-constants";
 
-export async function POST() {
-  return new Response(JSON.stringify({ok: false, error: "disabled on static deploy"}), {
-    status: 200,
-    headers: {"content-type": "application/json", "Cache-Control": "no-store"},
+export async function POST(request: Request) {
+  const token = readCookie(request, ACCOUNT_SESSION_COOKIE);
+  await deleteSessionToken(token).catch(() => undefined);
+  const response = NextResponse.json({ ok: true });
+  response.cookies.set(ACCOUNT_SESSION_COOKIE, "", {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    path: "/",
+    maxAge: 0,
   });
-}
-
-export async function PUT() {
-  return new Response(JSON.stringify({ok: false, error: "disabled on static deploy"}), {
-    status: 200,
-    headers: {"content-type": "application/json", "Cache-Control": "no-store"},
+  response.cookies.set(ACCOUNT_GATE_COOKIE, "", {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    path: "/",
+    maxAge: 0,
   });
-}
-
-export async function PATCH() {
-  return new Response(JSON.stringify({ok: false, error: "disabled on static deploy"}), {
-    status: 200,
-    headers: {"content-type": "application/json", "Cache-Control": "no-store"},
-  });
-}
-
-export async function DELETE() {
-  return new Response(JSON.stringify({ok: false, error: "disabled on static deploy"}), {
-    status: 200,
-    headers: {"content-type": "application/json", "Cache-Control": "no-store"},
-  });
+  return response;
 }
