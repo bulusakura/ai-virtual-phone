@@ -1,6 +1,1849 @@
-// Generated from project source HTML files for built-in game templates.
-// Do not edit manually; update the source HTML and regenerate if needed.
 
-export const DOUDIZHU_GAME_HTML = "<!doctype html>\n<html lang=\"zh-CN\">\n<head>\n<meta charset=\"utf-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover\">\n<title>欢乐斗地主</title>\n<style>\n  :root{\n    --felt-1:#0c5b3f;\n    --felt-2:#063b2a;\n    --gold:#f1c45a;\n    --gold-soft:#e9b94a;\n    --ink:#1c2530;\n    --cream:#fdf7e8;\n    --red:#d33b3b;\n    --safe-top: var(--ai-phone-game-safe-top, 88px);\n    --safe-bottom: var(--ai-phone-game-safe-bottom, 24px);\n  }\n  *{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }\n  html,body{ width:100%; height:100%; margin:0; }\n  body{\n    overflow:hidden;\n    font-family:\"PingFang SC\",\"Hiragino Sans GB\",\"Microsoft YaHei\",-apple-system,sans-serif;\n    color:#fff;\n    background:\n      radial-gradient(120% 80% at 50% 12%, rgba(255,255,255,.06) 0, transparent 55%),\n      radial-gradient(140% 120% at 50% 38%, var(--felt-1) 0%, var(--felt-2) 62%, #042319 100%);\n    user-select:none;\n  }\n  #app{ position:relative; width:100%; height:100%; }\n  .screen{\n    position:absolute; inset:0;\n    display:none;\n    min-height:100%;\n    padding: var(--safe-top) 14px var(--safe-bottom);\n  }\n  .screen.active{ display:block; }\n\n  /* felt texture */\n  body::before{\n    content:\"\"; position:fixed; inset:0; pointer-events:none; z-index:0;\n    background-image:\n      repeating-linear-gradient(45deg, rgba(255,255,255,.012) 0 2px, transparent 2px 6px);\n    mix-blend-mode:overlay;\n  }\n\n  /* ---------- SETUP ---------- */\n  #setup{ display:none; }\n  #setup.active{ display:flex; flex-direction:column; }\n  .title-wrap{ text-align:center; margin: 6px 0 14px; }\n  .title-wrap h1{\n    margin:0; font-size:30px; letter-spacing:6px; font-weight:800;\n    background:linear-gradient(180deg,#fff5d6,var(--gold) 60%,#b9842b);\n    -webkit-background-clip:text; background-clip:text; color:transparent;\n    text-shadow:0 2px 0 rgba(0,0,0,.25);\n  }\n  .title-wrap p{ margin:8px 0 0; font-size:13px; color:#cfe6da; letter-spacing:1px; }\n  .panel{\n    background:rgba(0,0,0,.26);\n    border:1px solid rgba(255,255,255,.08);\n    border-radius:18px; padding:16px;\n    box-shadow:0 10px 30px rgba(0,0,0,.25) inset, 0 4px 18px rgba(0,0,0,.2);\n  }\n  .panel h2{ margin:0 0 4px; font-size:15px; color:var(--gold); letter-spacing:2px; }\n  .panel .hint{ font-size:12px; color:#a9c4ba; margin:0 0 12px; line-height:1.5; }\n  .char-list{ display:flex; flex-direction:column; gap:10px; max-height:42vh; overflow:auto; -webkit-overflow-scrolling:touch; }\n  .char-card{\n    display:flex; align-items:center; gap:12px;\n    padding:10px 12px; border-radius:14px; cursor:pointer;\n    background:rgba(255,255,255,.05); border:1.5px solid rgba(255,255,255,.07);\n    transition:transform .12s, border-color .15s, background .15s;\n  }\n  .char-card:active{ transform:scale(.98); }\n  .char-card.sel{ border-color:var(--gold); background:rgba(241,196,90,.12); }\n  .char-card .avatar{\n    width:46px; height:46px; border-radius:50%; flex:0 0 auto; object-fit:cover;\n    background:linear-gradient(135deg,#3a5a4d,#1d3329); border:1.5px solid rgba(255,255,255,.18);\n    display:flex; align-items:center; justify-content:center; font-size:18px; color:#dfe9e3;\n    overflow:hidden;\n  }\n  .char-card .meta{ flex:1; min-width:0; }\n  .char-card .meta .nm{ font-size:15px; font-weight:700; }\n  .char-card .meta .sub{ font-size:12px; color:#9fbbb0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }\n  .char-card .tick{\n    width:22px; height:22px; border-radius:50%; flex:0 0 auto;\n    border:1.5px solid rgba(255,255,255,.3);\n    display:flex; align-items:center; justify-content:center; font-size:13px;\n  }\n  .char-card.sel .tick{ background:var(--gold); border-color:var(--gold); color:#3a2a05; font-weight:900; }\n  .empty-note{ font-size:12px; color:#9fbbb0; text-align:center; padding:14px; line-height:1.6; }\n\n  .btn{\n    border:none; border-radius:999px; font-weight:800; letter-spacing:1px;\n    padding:13px 22px; font-size:15px; cursor:pointer; transition:transform .1s, filter .15s, opacity .15s;\n    color:#3a2a05;\n    background:linear-gradient(180deg,#ffe9a8,var(--gold) 55%,#cf972f);\n    box-shadow:0 6px 16px rgba(0,0,0,.3), 0 1px 0 rgba(255,255,255,.4) inset;\n  }\n  .btn:active{ transform:translateY(1px) scale(.99); }\n  .btn:disabled{ opacity:.45; filter:grayscale(.4); cursor:default; }\n  .btn.ghost{ background:rgba(255,255,255,.08); color:#eaf4ee; box-shadow:none; border:1.5px solid rgba(255,255,255,.16); }\n  .btn.danger{ background:linear-gradient(180deg,#ff8a8a,#d33b3b 60%,#9c1f1f); color:#fff; }\n  .start-row{ margin-top:auto; padding-top:16px; display:flex; gap:10px; }\n  .start-row .btn{ flex:1; }\n\n  /* ---------- GAME ---------- */\n  #game{ display:none; }\n  #game.active{ display:flex; flex-direction:column; padding-bottom:0; }\n  .topbar{\n    position:absolute; top:calc(var(--safe-top) - 30px); right:14px; z-index:30;\n    display:flex; gap:8px; align-items:center;\n  }\n  .pill{\n    background:rgba(0,0,0,.4); border:1px solid rgba(255,255,255,.12);\n    border-radius:999px; padding:5px 12px; font-size:12px; letter-spacing:.5px;\n    display:flex; align-items:center; gap:6px; backdrop-filter:blur(6px);\n  }\n  .pill b{ color:var(--gold); }\n\n  .table{ position:relative; flex:1; min-height:0; }\n\n  .seat{ position:absolute; display:flex; flex-direction:column; align-items:center; gap:5px; z-index:10; }\n  .seat.top-left{ top:6px; left:8px; }\n  .seat.top-right{ top:6px; right:8px; }\n  .seat .av-wrap{ position:relative; }\n  .seat .avatar{\n    width:54px; height:54px; border-radius:50%;\n    background:linear-gradient(135deg,#3a5a4d,#1d3329);\n    border:2px solid rgba(255,255,255,.22);\n    display:flex; align-items:center; justify-content:center; font-size:20px; color:#dfe9e3;\n    overflow:hidden; box-shadow:0 4px 12px rgba(0,0,0,.35);\n  }\n  .seat .avatar img{ width:100%; height:100%; object-fit:cover; }\n  .seat .avatar.turn{ border-color:var(--gold); box-shadow:0 0 0 3px rgba(241,196,90,.35),0 0 18px rgba(241,196,90,.5); }\n  .role-badge{\n    position:absolute; bottom:-4px; left:50%; transform:translateX(-50%);\n    font-size:10px; font-weight:800; padding:1px 7px; border-radius:999px; letter-spacing:1px;\n    white-space:nowrap; box-shadow:0 2px 6px rgba(0,0,0,.4);\n  }\n  .role-badge.dz{ background:linear-gradient(180deg,#ffdf8a,#d99a22); color:#3a2a05; }\n  .role-badge.nm{ background:linear-gradient(180deg,#bfe0ff,#5b9bd6); color:#10243a; }\n  .seat .nm-line{ font-size:12px; max-width:88px; text-align:center; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }\n  .seat .count{\n    font-size:11px; color:#cfe6da; background:rgba(0,0,0,.35);\n    border-radius:999px; padding:1px 8px; display:flex; align-items:center; gap:4px;\n  }\n  .seat .count .mini{ width:9px; height:13px; border-radius:2px; background:linear-gradient(135deg,#c9302c,#7a1410); border:1px solid rgba(255,255,255,.3); }\n\n  /* speech bubble */\n  .bubble{\n    position:absolute; z-index:25; max-width:160px; min-width:40px;\n    background:var(--cream); color:#26303a; font-size:12.5px; line-height:1.45;\n    padding:8px 11px; border-radius:14px;\n    box-shadow:0 8px 20px rgba(0,0,0,.4);\n    opacity:0; transform:translateY(6px) scale(.9); pointer-events:none;\n    transition:opacity .18s, transform .18s;\n  }\n  .bubble.show{ opacity:1; transform:translateY(0) scale(1); }\n  .bubble::after{ content:\"\"; position:absolute; width:0; height:0; border:7px solid transparent; }\n  .bubble.left{ top:8px; left:64px; }\n  .bubble.left::after{ left:-12px; top:14px; border-right-color:var(--cream); }\n  .bubble.right{ top:8px; right:64px; text-align:right; }\n  .bubble.right::after{ right:-12px; top:14px; border-left-color:var(--cream); }\n  .bubble .think{ display:inline-flex; gap:3px; }\n  .bubble .think i{ width:5px; height:5px; border-radius:50%; background:#9aa6b0; animation:blink 1s infinite; }\n  .bubble .think i:nth-child(2){ animation-delay:.2s; } .bubble .think i:nth-child(3){ animation-delay:.4s; }\n  @keyframes blink{ 0%,60%,100%{opacity:.25;} 30%{opacity:1;} }\n\n  /* play zones (center table) */\n  .play-zone{ position:absolute; display:flex; justify-content:center; align-items:center; flex-wrap:wrap; gap:0; z-index:8; min-height:74px; }\n  #pz-0{ left:0; right:0; bottom:6px; }\n  #pz-1{ right:6px; top:96px; max-width:46%; justify-content:flex-end; }\n  #pz-2{ left:6px; top:96px; max-width:46%; justify-content:flex-start; }\n  .pz-pass{ font-size:22px; font-weight:900; color:var(--gold); letter-spacing:2px; text-shadow:0 2px 6px rgba(0,0,0,.5); transform:rotate(-8deg); }\n\n  /* center info */\n  .center-info{ position:absolute; left:50%; top:40%; transform:translate(-50%,-50%); text-align:center; z-index:6; opacity:.9; }\n  .center-info .vs{ font-size:13px; color:#bfe0d4; letter-spacing:3px; }\n\n  /* bottom landlord cards */\n  .dipai{ position:absolute; top:8px; left:50%; transform:translateX(-50%); display:flex; gap:4px; z-index:12; }\n  .dipai .dp-label{ position:absolute; top:-18px; left:50%; transform:translateX(-50%); font-size:10px; color:var(--gold); letter-spacing:2px; white-space:nowrap; }\n\n  /* CARDS */\n  .card{\n    position:relative; width:46px; height:64px; border-radius:7px;\n    background:linear-gradient(180deg,#ffffff,#f3f4f1);\n    box-shadow:0 2px 5px rgba(0,0,0,.3); border:1px solid rgba(0,0,0,.12);\n    flex:0 0 auto; color:#1c2530; font-weight:800;\n  }\n  .card.sm{ width:34px; height:48px; border-radius:5px; }\n  .card .corner{ position:absolute; top:3px; left:4px; line-height:1; text-align:center; }\n  .card .corner .r{ font-size:14px; font-weight:900; }\n  .card.sm .corner .r{ font-size:11px; }\n  .card .corner .s{ font-size:11px; margin-top:-1px; }\n  .card.sm .corner .s{ font-size:8px; }\n  .card .mid{ position:absolute; left:0; right:0; top:50%; transform:translateY(-50%); text-align:center; font-size:22px; }\n  .card.sm .mid{ font-size:15px; }\n  .card.red{ color:var(--red); }\n  .card.joker .mid{ font-size:13px; writing-mode:vertical-rl; left:50%; transform:translate(-50%,-50%); letter-spacing:1px; font-weight:900; }\n  .card.joker.big{ color:var(--red); } .card.joker.small{ color:#1c2530; }\n  .card .jk-corner{ position:absolute; top:3px; left:0; right:0; text-align:center; font-size:10px; font-weight:900; }\n\n  /* card back */\n  .cback{\n    width:30px; height:44px; border-radius:5px; flex:0 0 auto;\n    background:\n      repeating-linear-gradient(45deg, #b32626 0 4px, #8e1b1b 4px 8px);\n    border:1.5px solid rgba(255,255,255,.5); box-shadow:0 2px 5px rgba(0,0,0,.35);\n    position:relative;\n  }\n  .cback::after{ content:\"\"; position:absolute; inset:4px; border:1px solid rgba(255,255,255,.4); border-radius:3px; }\n\n  /* hand */\n  .hand-area{ position:relative; padding:0 8px; }\n  .my-info{ display:flex; align-items:center; justify-content:center; gap:8px; margin-bottom:2px; }\n  .hand{ position:relative; display:flex; justify-content:center; align-items:flex-end; height:84px; }\n  .hand .card{ cursor:pointer; transition:transform .12s; margin-left:-22px; }\n  .hand .card:first-child{ margin-left:0; }\n  .hand .card.up{ transform:translateY(-16px); box-shadow:0 8px 16px rgba(0,0,0,.4); }\n  .hand .card.hintable{ outline:2px solid var(--gold); outline-offset:-1px; }\n\n  .actions{\n    display:flex; gap:10px; justify-content:center; align-items:center;\n    padding:10px 12px calc(var(--safe-bottom) + 6px);\n    min-height:60px;\n  }\n  .actions .btn{ padding:11px 20px; font-size:15px; min-width:78px; }\n\n  /* bidding overlay */\n  .overlay{\n    position:absolute; inset:0; z-index:50; display:none;\n    align-items:center; justify-content:center; flex-direction:column;\n    background:rgba(2,16,11,.55); backdrop-filter:blur(3px); padding:24px;\n  }\n  .overlay.show{ display:flex; }\n  .ov-card{\n    background:linear-gradient(180deg,rgba(20,50,38,.96),rgba(8,28,20,.97));\n    border:1px solid rgba(241,196,90,.3); border-radius:22px; padding:24px 20px;\n    text-align:center; width:100%; max-width:320px; box-shadow:0 20px 50px rgba(0,0,0,.5);\n  }\n  .ov-card h2{ margin:0 0 6px; font-size:20px; color:var(--gold); letter-spacing:2px; }\n  .ov-card p{ margin:0 0 18px; font-size:13px; color:#bfe0d4; line-height:1.6; }\n  .bid-row{ display:flex; gap:8px; justify-content:center; flex-wrap:wrap; }\n  .bid-row .btn{ flex:1; min-width:64px; padding:12px 0; }\n\n  /* result */\n  .result-emoji{ font-size:54px; margin-bottom:6px; }\n  .ov-card .score-line{ font-size:14px; color:#ffe9a8; margin:10px 0; }\n  .ov-card .summary-box{\n    text-align:left; font-size:12.5px; line-height:1.6; color:#d7ece2;\n    background:rgba(0,0,0,.25); border-radius:12px; padding:12px; margin:12px 0 18px;\n    max-height:120px; overflow:auto;\n  }\n\n  .toast{\n    position:absolute; left:50%; bottom:120px; transform:translateX(-50%) translateY(10px);\n    background:rgba(0,0,0,.82); color:#fff; font-size:13px; padding:9px 16px; border-radius:999px;\n    z-index:60; opacity:0; transition:opacity .2s, transform .2s; pointer-events:none; white-space:nowrap;\n  }\n  .toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }\n  .loading{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center; z-index:90; color:#cfe6da; font-size:14px; }\n  @keyframes dealIn{ from{ transform:translateY(40px) scale(.6); opacity:0; } to{ transform:none; opacity:1; } }\n  .deal-anim{ animation:dealIn .35s ease both; }\n</style>\n</head>\n<body>\n<div id=\"app\">\n\n  <!-- SETUP -->\n  <section id=\"setup\" class=\"screen active\">\n    <div class=\"title-wrap\">\n      <h1>斗 地 主</h1>\n      <p>选 1~2 位 TA 来陪你打牌 · 出牌与吐槽由角色自己决定</p>\n    </div>\n    <div class=\"panel\" style=\"flex:1; display:flex; flex-direction:column; min-height:0;\">\n      <h2>选择牌友</h2>\n      <p class=\"hint\">最多选 2 位。只选 1 位时，剩下一个座位由系统牌友补上。被选中的角色会在游戏里真的开口吐槽，结束后还会记住这局。</p>\n      <div id=\"charList\" class=\"char-list\"></div>\n    </div>\n    <div class=\"start-row\">\n      <button id=\"resumeBtn\" class=\"btn ghost\" style=\"display:none;\">继续上一局</button>\n      <button id=\"startBtn\" class=\"btn\">开始游戏</button>\n    </div>\n  </section>\n\n  <!-- GAME -->\n  <section id=\"game\" class=\"screen\">\n    <div class=\"topbar\">\n      <div class=\"pill\">底分 <b id=\"baseScore\">1</b></div>\n      <div class=\"pill\">倍数 <b id=\"multi\">1</b></div>\n    </div>\n\n    <div class=\"table\" id=\"table\">\n      <div class=\"dipai\" id=\"dipai\"><div class=\"dp-label\">底牌</div></div>\n\n      <div class=\"seat top-left\" id=\"seat-2\">\n        <div class=\"av-wrap\"><div class=\"avatar\" id=\"av-2\"></div><div class=\"role-badge\" id=\"rb-2\" style=\"display:none;\"></div></div>\n        <div class=\"nm-line\" id=\"nm-2\">—</div>\n        <div class=\"count\"><span class=\"mini\"></span><span id=\"cnt-2\">17</span></div>\n      </div>\n\n      <div class=\"seat top-right\" id=\"seat-1\">\n        <div class=\"av-wrap\"><div class=\"avatar\" id=\"av-1\"></div><div class=\"role-badge\" id=\"rb-1\" style=\"display:none;\"></div></div>\n        <div class=\"nm-line\" id=\"nm-1\">—</div>\n        <div class=\"count\"><span class=\"mini\"></span><span id=\"cnt-1\">17</span></div>\n      </div>\n\n      <div class=\"center-info\" id=\"centerInfo\"><div class=\"vs\">发牌中…</div></div>\n\n      <div class=\"play-zone\" id=\"pz-2\"></div>\n      <div class=\"play-zone\" id=\"pz-1\"></div>\n      <div class=\"play-zone\" id=\"pz-0\"></div>\n\n      <div class=\"bubble left\"  id=\"bub-2\"></div>\n      <div class=\"bubble right\" id=\"bub-1\"></div>\n      <div class=\"bubble right\" id=\"bub-0\" style=\"bottom:96px; top:auto; right:14px;\"></div>\n    </div>\n\n    <div class=\"hand-area\">\n      <div class=\"my-info\">\n        <div class=\"role-badge\" id=\"rb-0\" style=\"position:static; transform:none; display:none;\"></div>\n        <span id=\"nm-0\" style=\"font-size:13px;\">你</span>\n      </div>\n      <div class=\"hand\" id=\"hand\"></div>\n    </div>\n\n    <div class=\"actions\" id=\"actions\"></div>\n\n    <!-- bidding / result overlay -->\n    <div class=\"overlay\" id=\"overlay\"><div class=\"ov-card\" id=\"ovCard\"></div></div>\n    <div class=\"toast\" id=\"toast\"></div>\n  </section>\n\n</div>\n\n<script>\n\"use strict\";\n\n/* =========================================================\n   宿主 API 安全封装（缺失时降级，避免崩溃）\n   ========================================================= */\nconst Host = (() => {\n  const A = (typeof window !== \"undefined\" && window.AiPhoneGame) ? window.AiPhoneGame : null;\n  const has = (k) => A && typeof A[k] === \"function\";\n  return {\n    available: !!A,\n    async listCharacters(){ try { return has(\"listAvailableCharacters\") ? (await A.listAvailableCharacters())||[] : []; } catch(e){ return []; } },\n    async player(){ try { return has(\"getPlayerProfile\") ? (await A.getPlayerProfile())||{} : {}; } catch(e){ return {}; } },\n    async light(id){ try { return has(\"getRoleLightPackage\") ? await A.getRoleLightPackage(id) : null; } catch(e){ return null; } },\n    async callLLM(args){ try { return has(\"callLLM\") ? await A.callLLM(args) : null; } catch(e){ return null; } },\n    async callGlobal(args){ try { return has(\"callGlobalLLM\") ? await A.callGlobalLLM(args) : null; } catch(e){ return null; } },\n    async record(args){ try { if(has(\"recordGameEvent\")) await A.recordGameEvent(args); } catch(e){} },\n    async save(s){ try { if(has(\"saveGame\")) await A.saveGame(s); } catch(e){} },\n    async load(){ try { return has(\"loadGame\") ? await A.loadGame() : null; } catch(e){ return null; } },\n    async titleBar(s){ try { if(has(\"setTitleBar\")) await A.setTitleBar(s); } catch(e){} },\n    async close(){ try { if(has(\"closeGame\")) await A.closeGame(); } catch(e){} }\n  };\n})();\n\n/* =========================================================\n   牌引擎\n   rank: 3..10=本值, J=11,Q=12,K=13,A=14,2=15, 小王=16, 大王=17\n   ========================================================= */\nconst SUITS = [\"♠\",\"♥\",\"♦\",\"♣\"];\nconst RANK_LABEL = {11:\"J\",12:\"Q\",13:\"K\",14:\"A\",15:\"2\"};\nfunction rankLabel(r){ if(r===16) return \"小王\"; if(r===17) return \"大王\"; return RANK_LABEL[r] || String(r); }\nfunction isRed(c){ if(c.rank===17) return true; if(c.rank===16) return false; return c.suit===\"♥\"||c.suit===\"♦\"; }\nlet _cid = 0;\nfunction buildDeck(){\n  const d=[];\n  for(let r=3;r<=15;r++) for(const s of SUITS) d.push({id:++_cid, rank:r, suit:s});\n  d.push({id:++_cid, rank:16, suit:null}); // 小王\n  d.push({id:++_cid, rank:17, suit:null}); // 大王\n  return d;\n}\nfunction shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }\nfunction sortHand(h){ return h.slice().sort((a,b)=> a.rank-b.rank || (SUITS.indexOf(a.suit)-SUITS.indexOf(b.suit))); }\n\n/* ---------- 牌型 ---------- */\nfunction groupByRank(cards){ const g={}; cards.forEach(c=>{ (g[c.rank]=g[c.rank]||[]).push(c); }); return g; }\nfunction isRun(arr){ for(let i=1;i<arr.length;i++) if(arr[i]!==arr[i-1]+1) return false; return true; }\n\n// 识别玩家手动选择的牌型 → move 或 null\nfunction parseSelection(cards){\n  const n=cards.length; if(n===0) return null;\n  const g=groupByRank(cards);\n  const counts={}; for(const k in g) counts[k]=g[k].length;\n  const uniq=Object.keys(counts).map(Number).sort((a,b)=>a-b);\n\n  if(n===2 && counts[16]===1 && counts[17]===1) return mk(\"rocket\",1000,1,cards);\n  if(n===4 && uniq.length===1) return mk(\"bomb\",uniq[0],1,cards);\n  if(n===1) return mk(\"single\",uniq[0],1,cards);\n  if(n===2 && uniq.length===1) return mk(\"pair\",uniq[0],1,cards);\n  if(n===3 && uniq.length===1) return mk(\"triple\",uniq[0],1,cards);\n  if(n===4){ const t=uniq.find(r=>counts[r]===3); if(t!==undefined) return mk(\"triple_one\",t,1,cards); }\n  if(n===5){ const t=uniq.find(r=>counts[r]===3), p=uniq.find(r=>counts[r]===2); if(t!==undefined&&p!==undefined) return mk(\"triple_two\",t,1,cards); }\n  // 顺子\n  if(n>=5 && uniq.length===n && isRun(uniq) && uniq[uniq.length-1]<=14) return mk(\"straight\",uniq[0],n,cards);\n  // 连对\n  if(n>=6 && n%2===0 && uniq.length>=3 && uniq.every(r=>counts[r]===2) && isRun(uniq) && uniq[uniq.length-1]<=14)\n    return mk(\"double_straight\",uniq[0],uniq.length,cards);\n  // 飞机\n  const trips=uniq.filter(r=>counts[r]===3 && r<=14);\n  const quads=uniq.filter(r=>counts[r]===4);\n  if(trips.length>=2 && isRun(trips) && quads.length===0){\n    const k=trips.length;\n    const rest=uniq.filter(r=>!trips.includes(r));\n    const restCards=rest.reduce((s,r)=>s+counts[r],0);\n    if(restCards===0) return mk(\"airplane\",trips[0],k,cards);\n    if(restCards===k && rest.every(r=>counts[r]===1)) return mk(\"airplane_single\",trips[0],k,cards);\n    if(restCards===2*k && rest.every(r=>counts[r]===2)) return mk(\"airplane_pair\",trips[0],k,cards);\n  }\n  return null;\n}\nfunction mk(type,value,len,cards){ return {type,value,len,cards}; }\n\n// move 能否压过 last\nfunction canBeat(move,last){\n  if(!last) return true;\n  if(move.type===\"rocket\") return true;\n  if(move.type===\"bomb\"){\n    if(last.type===\"rocket\") return false;\n    if(last.type===\"bomb\") return move.value>last.value;\n    return true;\n  }\n  if(last.type===\"rocket\"||last.type===\"bomb\") return false;\n  return move.type===last.type && move.len===last.len && move.value>last.value;\n}\n\n// 生成手牌全部可出牌型（用于 AI 候选、提示、校验池）\nfunction generateAllMoves(hand){\n  const moves=[];\n  const g=groupByRank(hand);\n  const ranks=Object.keys(g).map(Number).sort((a,b)=>a-b);\n  const cnt=(r)=> g[r]? g[r].length:0;\n  const take=(r,k)=> g[r].slice(0,k);\n\n  for(const r of ranks){\n    moves.push(mk(\"single\",r,1,take(r,1)));\n    if(cnt(r)>=2) moves.push(mk(\"pair\",r,1,take(r,2)));\n    if(cnt(r)>=3) moves.push(mk(\"triple\",r,1,take(r,3)));\n    if(cnt(r)===4) moves.push(mk(\"bomb\",r,1,take(r,4)));\n  }\n  if(g[16]&&g[17]) moves.push(mk(\"rocket\",1000,1,[g[16][0],g[17][0]]));\n\n  // 三带（用 id 最低、最不破坏结构的余牌作搭子）\n  const allIds = new Set(hand.map(c=>c.id));\n  function pickKickers(usedIds, kSingles, kPairs){\n    // 返回 {ok, cards}; 优先用单张余牌，再拆对\n    const pool = hand.filter(c=>!usedIds.has(c.id));\n    const pg = groupByRank(pool);\n    const out=[];\n    // 先满足对子搭子（飞机带对）\n    if(kPairs>0){\n      const pairRanks=Object.keys(pg).map(Number).filter(r=>pg[r].length>=2).sort((a,b)=>a-b);\n      if(pairRanks.length<kPairs) return {ok:false};\n      for(let i=0;i<kPairs;i++){ out.push(pg[pairRanks[i]][0], pg[pairRanks[i]][1]); }\n    }\n    if(kSingles>0){\n      const usedNow=new Set(out.map(c=>c.id));\n      const singles=pool.filter(c=>!usedNow.has(c.id)).sort((a,b)=>a.rank-b.rank);\n      // 尽量挑“孤张”，简单起见直接挑最小的 kSingles 张\n      if(singles.length<kSingles) return {ok:false};\n      for(let i=0;i<kSingles;i++) out.push(singles[i]);\n    }\n    return {ok:true, cards:out};\n  }\n  for(const r of ranks){\n    if(cnt(r)>=3){\n      const base=take(r,3); const used=new Set(base.map(c=>c.id));\n      const k1=pickKickers(used,1,0); if(k1.ok) moves.push(mk(\"triple_one\",r,1,base.concat(k1.cards)));\n      const k2=pickKickers(used,0,1); if(k2.ok) moves.push(mk(\"triple_two\",r,1,base.concat(k2.cards)));\n    }\n  }\n\n  // 顺子\n  const present=(r)=> cnt(r)>=1;\n  for(let s=3;s<=10;s++){\n    if(!present(s)) continue;\n    let cards=[g[s][0]];\n    for(let e=s+1;e<=14;e++){\n      if(!present(e)) break;\n      cards=cards.concat([g[e][0]]);\n      if(cards.length>=5) moves.push(mk(\"straight\",s,cards.length,cards.slice()));\n    }\n  }\n  // 连对\n  for(let s=3;s<=13;s++){\n    if(cnt(s)<2) continue;\n    let cards=g[s].slice(0,2);\n    for(let e=s+1;e<=14;e++){\n      if(cnt(e)<2) break;\n      cards=cards.concat(g[e].slice(0,2));\n      const len=(e-s+1);\n      if(len>=3) moves.push(mk(\"double_straight\",s,len,cards.slice()));\n    }\n  }\n  // 飞机（纯 + 带单 + 带对）\n  for(let s=3;s<=13;s++){\n    if(cnt(s)<3) continue;\n    let tripRanks=[s];\n    let core=g[s].slice(0,3);\n    for(let e=s+1;e<=14;e++){\n      if(cnt(e)<3) break;\n      tripRanks.push(e); core=core.concat(g[e].slice(0,3));\n      const k=tripRanks.length;\n      if(k>=2){\n        const used=new Set(core.map(c=>c.id));\n        moves.push(mk(\"airplane\",s,k,core.slice()));\n        const ks=pickKickers(used,k,0); if(ks.ok) moves.push(mk(\"airplane_single\",s,k,core.concat(ks.cards)));\n        const kp=pickKickers(used,0,k); if(kp.ok) moves.push(mk(\"airplane_pair\",s,k,core.concat(kp.cards)));\n      }\n    }\n  }\n  return moves;\n}\n\n// 评估手牌强度（叫地主用）0~100\nfunction handStrength(hand){\n  const g=groupByRank(hand); let s=0;\n  if(g[17]) s+=9; if(g[16]) s+=7;\n  for(const r in g){ const c=g[r].length; if(c===4) s+=10; }\n  s += (g[15]?g[15].length*3:0);\n  s += (g[14]?g[14].length*1.5:0);\n  // 顺子潜力粗估\n  const allMoves=generateAllMoves(hand);\n  s += allMoves.filter(m=>m.type===\"straight\"&&m.len>=5).length*2;\n  return Math.min(100, Math.round(s*4));\n}\n\n/* =========================================================\n   游戏状态\n   players[0]=玩家(下) players[1]=右上 players[2]=左上\n   ========================================================= */\nconst G = {\n  players:[],          // {idx,name,avatar,isHuman,charId,pkg,npcPersona,hand,role}\n  turn:0,\n  landlord:0,\n  lastMove:null,\n  lastPlayer:0,\n  baseScore:1,\n  multiplier:1,\n  bottomCards:[],\n  phase:\"setup\",\n  over:false,\n  selectedChars:[]      // [{id,name,avatar}]\n};\nlet allChars=[];\nlet humanSelection=[];\n\n/* =========================================================\n   DOM 帮助\n   ========================================================= */\nconst $ = (id)=>document.getElementById(id);\nfunction show(scr){ document.querySelectorAll(\".screen\").forEach(s=>s.classList.remove(\"active\")); $(scr).classList.add(\"active\"); }\nfunction toast(msg){ const t=$(\"toast\"); t.textContent=msg; t.classList.add(\"show\"); clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove(\"show\"),1500); }\nfunction wait(ms){ return new Promise(r=>setTimeout(r,ms)); }\n\nfunction cardEl(c, sm){\n  const d=document.createElement(\"div\");\n  d.className=\"card\"+(sm?\" sm\":\"\")+(isRed(c)?\" red\":\"\");\n  if(c.rank>=16){\n    d.classList.add(\"joker\", c.rank===17?\"big\":\"small\");\n    d.innerHTML=`<div class=\"jk-corner\">JOKER</div><div class=\"mid\">${c.rank===17?\"大王\":\"小王\"}</div>`;\n  } else {\n    d.innerHTML=`<div class=\"corner\"><div class=\"r\">${rankLabel(c.rank)}</div><div class=\"s\">${c.suit}</div></div>\n                 <div class=\"mid\">${c.suit}</div>`;\n  }\n  return d;\n}\nfunction backFan(n){\n  const wrap=document.createElement(\"div\"); wrap.style.display=\"flex\"; wrap.style.justifyContent=\"center\";\n  const show=Math.min(n,3);\n  for(let i=0;i<show;i++){ const b=document.createElement(\"div\"); b.className=\"cback\"; if(i>0) b.style.marginLeft=\"-22px\"; wrap.appendChild(b); }\n  return wrap;\n}\n\n/* =========================================================\n   渲染\n   ========================================================= */\nfunction renderSeats(){\n  for(let i=0;i<3;i++){\n    const p=G.players[i];\n    if(i===0){ $(\"nm-0\").textContent=p.name; }\n    else {\n      $(\"nm-\"+i).textContent=p.name;\n      const av=$(\"av-\"+i);\n      av.innerHTML = p.avatar ? `<img src=\"${p.avatar}\" onerror=\"this.remove()\">` : (p.name?p.name[0]:\"?\");\n      $(\"cnt-\"+i).textContent=p.hand.length;\n    }\n    const rb=$(\"rb-\"+i);\n    if(p.role){ rb.style.display=\"inline-block\"; rb.className=\"role-badge \"+(p.role===\"地主\"?\"dz\":\"nm\")+(i===0?\"\":\"\"); if(i===0){rb.style.position=\"static\";rb.style.transform=\"none\";} rb.textContent=p.role; }\n  }\n}\nfunction renderTurn(){\n  for(let i=1;i<3;i++) $(\"av-\"+i).classList.toggle(\"turn\", G.turn===i && !G.over);\n}\nfunction renderCounts(){ for(let i=1;i<3;i++) $(\"cnt-\"+i).textContent=G.players[i].hand.length; }\n\nfunction renderHand(){\n  const hand=$(\"hand\"); hand.innerHTML=\"\";\n  const cards=sortHand(G.players[0].hand);\n  G.players[0].hand=cards;\n  cards.forEach(c=>{\n    const el=cardEl(c,false);\n    el.dataset.id=c.id;\n    if(selected.has(c.id)) el.classList.add(\"up\");\n    el.addEventListener(\"click\",()=>toggleCard(c.id,el));\n    hand.appendChild(el);\n  });\n  // 重叠间距按屏宽自适应，保证所有牌都在一屏内、不被裁切\n  const n=cards.length;\n  const cardW=46;\n  const containerW=(hand.clientWidth || (document.body.clientWidth-28)) - 4;\n  let step=30; // 每张牌露出的宽度\n  if(n>1){ step=Math.min(30, (containerW-cardW)/(n-1)); }\n  const ml=Math.round(step-cardW);\n  hand.querySelectorAll(\".card\").forEach((el,i)=>{ el.style.marginLeft = i===0?\"0\":ml+\"px\"; });\n}\n\nfunction renderPlay(idx, move){\n  const pz=$(\"pz-\"+idx); pz.innerHTML=\"\";\n  if(!move){ return; }\n  if(move.type===\"pass\"){ pz.innerHTML=`<div class=\"pz-pass\">不出</div>`; return; }\n  const cards = sortHand(move.cards);\n  cards.forEach((c,i)=>{ const el=cardEl(c,true); el.classList.add(\"deal-anim\"); el.style.animationDelay=(i*0.03)+\"s\"; if(i>0) el.style.marginLeft=\"-16px\"; pz.appendChild(el); });\n}\nfunction clearPlays(){ [\"pz-0\",\"pz-1\",\"pz-2\"].forEach(id=>$(id).innerHTML=\"\"); }\n\nfunction renderHud(){ $(\"baseScore\").textContent=G.baseScore; $(\"multi\").textContent=G.multiplier; }\n\n/* 气泡 */\nconst bubbleTimers={};\nfunction bubble(idx, html, sticky){\n  const b=$(\"bub-\"+idx); b.innerHTML=html; b.classList.add(\"show\");\n  clearTimeout(bubbleTimers[idx]);\n  if(!sticky) bubbleTimers[idx]=setTimeout(()=>b.classList.remove(\"show\"), 3200);\n}\nfunction hideBubble(idx){ clearTimeout(bubbleTimers[idx]); $(\"bub-\"+idx).classList.remove(\"show\"); }\nfunction thinking(idx){ bubble(idx,`<span class=\"think\"><i></i><i></i><i></i></span>`, true); }\n\n/* =========================================================\n   选牌（玩家）\n   ========================================================= */\nlet selected=new Set();\nfunction toggleCard(id, el){\n  if(G.turn!==0 || G.over || G.phase!==\"playing\") return;\n  if(selected.has(id)){ selected.delete(id); el.classList.remove(\"up\"); }\n  else { selected.add(id); el.classList.add(\"up\"); }\n  clearHints();\n}\nfunction selectedCards(){ return G.players[0].hand.filter(c=>selected.has(c.id)); }\nfunction clearSelection(){ selected.clear(); $(\"hand\").querySelectorAll(\".card.up\").forEach(e=>e.classList.remove(\"up\")); }\n\n/* 提示 */\nlet hintList=[], hintIdx=0;\nfunction clearHints(){ $(\"hand\").querySelectorAll(\".hintable\").forEach(e=>e.classList.remove(\"hintable\")); }\nfunction doHint(){\n  clearHints();\n  const hand=G.players[0].hand;\n  const leading = G.lastPlayer===0 || !G.lastMove;\n  let opts = generateAllMoves(hand);\n  if(!leading) opts = opts.filter(m=>canBeat(m,G.lastMove));\n  if(opts.length===0){ toast(leading?\"没有可出的牌\":\"要不起，点【不出】\"); return; }\n  // 排序：小到大，炸弹火箭往后\n  opts.sort((a,b)=> rankCat(a)-rankCat(b) || a.len-b.len || a.value-b.value );\n  hintList=opts; hintIdx=hintIdx%opts.length;\n  const m=hintList[hintIdx]; hintIdx=(hintIdx+1)%hintList.length;\n  selected=new Set(m.cards.map(c=>c.id));\n  renderHand();\n  $(\"hand\").querySelectorAll(\".card\").forEach(e=>{ if(selected.has(+e.dataset.id)) e.classList.add(\"hintable\"); });\n}\nfunction rankCat(m){ if(m.type===\"rocket\")return 9; if(m.type===\"bomb\")return 8; return 0; }\n\n/* =========================================================\n   动作按钮\n   ========================================================= */\nfunction renderActions(){\n  const a=$(\"actions\"); a.innerHTML=\"\";\n  if(G.over || G.phase!==\"playing\"){ return; }\n  if(G.turn!==0){ a.innerHTML=`<div style=\"color:#bfe0d4;font-size:13px;\">等待 ${G.players[G.turn].name} 出牌…</div>`; return; }\n  const leading = G.lastPlayer===0 || !G.lastMove;\n  const passBtn=mkBtn(\"不出\",\"ghost\",onPass); passBtn.disabled=leading;\n  const hintBtn=mkBtn(\"提示\",\"ghost\",doHint);\n  const playBtn=mkBtn(\"出牌\",\"\",onPlay);\n  a.appendChild(passBtn); a.appendChild(hintBtn); a.appendChild(playBtn);\n}\nfunction mkBtn(text,cls,fn){ const b=document.createElement(\"button\"); b.className=\"btn\"+(cls?\" \"+cls:\"\"); b.textContent=text; b.addEventListener(\"click\",fn); return b; }\n\nfunction onPass(){\n  if(G.lastPlayer===0 || !G.lastMove){ toast(\"你是先手，必须出牌\"); return; }\n  clearSelection(); clearHints();\n  applyMove(0,{type:\"pass\"});\n}\nfunction onPlay(){\n  const sel=selectedCards();\n  if(sel.length===0){ toast(\"先选牌\"); return; }\n  const move=parseSelection(sel);\n  if(!move){ toast(\"不是有效牌型\"); shakeHand(); return; }\n  const leading = G.lastPlayer===0 || !G.lastMove;\n  if(!leading && !canBeat(move,G.lastMove)){ toast(\"压不过上家\"); shakeHand(); return; }\n  clearHints();\n  applyMove(0,move);\n}\nfunction shakeHand(){ const h=$(\"hand\"); h.animate([{transform:\"translateX(0)\"},{transform:\"translateX(-6px)\"},{transform:\"translateX(6px)\"},{transform:\"translateX(0)\"}],{duration:240}); }\n\n/* =========================================================\n   核心：执行一手\n   ========================================================= */\nasync function applyMove(idx, move){\n  const p=G.players[idx];\n  if(move.type===\"pass\"){\n    renderPlay(idx,{type:\"pass\"});\n    bubble(idx, p.isHuman ? \"不出~\" : (p._lastSay||\"过\"));\n  } else {\n    // 从手牌移除\n    const ids=new Set(move.cards.map(c=>c.id));\n    p.hand=p.hand.filter(c=>!ids.has(c.id));\n    // 清掉其它桌面（新一轮压牌可视化）\n    if(G.lastPlayer===idx || !G.lastMove){ clearPlays(); }\n    renderPlay(idx,move);\n    G.lastMove=move; G.lastPlayer=idx;\n    if(move.type===\"bomb\"||move.type===\"rocket\"){ G.multiplier*=2; renderHud(); toast(move.type===\"rocket\"?\"火箭！双倍！\":\"炸弹！双倍！\"); }\n    if(p._lastSay) bubble(idx,p._lastSay); else if(p.isHuman) hideBubble(0);\n  }\n  if(idx===0) clearSelection();\n  renderHand(); renderCounts();\n\n  // 胜负\n  if(p.hand.length===0){ return endGame(idx); }\n\n  await Host.save(serialize());\n  await wait(600);\n  G.turn=(G.turn+1)%3;\n  renderTurn(); renderActions();\n  await stepLoop();\n}\n\nasync function stepLoop(){\n  while(!G.over){\n    const p=G.players[G.turn];\n    // 轮回到上次出牌者 → 新一轮，自己先手\n    if(G.lastPlayer===G.turn) { G.lastMove=null; }\n    if(p.isHuman){ renderActions(); $(\"centerInfo\").innerHTML=`<div class=\"vs\">轮到你出牌</div>`; return; }\n    $(\"centerInfo\").innerHTML=`<div class=\"vs\">${p.name} 思考中…</div>`;\n    await aiTurn(p);\n    if(G.over) return;\n    await wait(550);\n    G.turn=(G.turn+1)%3; renderTurn();\n  }\n}\n\n/* =========================================================\n   AI 出牌：让角色自己挑 + 吐槽\n   ========================================================= */\nfunction moveDesc(m){\n  if(m.type===\"pass\") return \"不出\";\n  const names={single:\"单\",pair:\"对\",triple:\"三张\",triple_one:\"三带一\",triple_two:\"三带二\",straight:\"顺子\",double_straight:\"连对\",airplane:\"飞机\",airplane_single:\"飞机带单\",airplane_pair:\"飞机带对\",bomb:\"炸弹\",rocket:\"王炸\"};\n  const cs=sortHand(m.cards).map(c=>rankLabel(c.rank)).join(\" \");\n  return `${names[m.type]||m.type}[${cs}]`;\n}\nfunction curateOptions(opts, leading){\n  // 去重 + 控制数量（省 token），保留多样性\n  const seen=new Set(); const out=[];\n  opts.sort((a,b)=> rankCat(a)-rankCat(b) || typeOrder(a)-typeOrder(b) || a.len-b.len || a.value-b.value);\n  for(const m of opts){\n    const key=m.type+\"|\"+m.len+\"|\"+m.value;\n    if(seen.has(key)) continue; seen.add(key); out.push(m);\n  }\n  // 每个 type 最多保留几项，避免顺子刷屏\n  const byType={}; const limited=[];\n  for(const m of out){ byType[m.type]=(byType[m.type]||0)+1; if(byType[m.type]<=4) limited.push(m); }\n  return limited.slice(0,14);\n}\nfunction typeOrder(m){ const o={single:0,pair:1,triple:2,triple_one:3,triple_two:4,straight:5,double_straight:6,airplane:7,airplane_single:8,airplane_pair:9,bomb:10,rocket:11}; return o[m.type]??5; }\n\nfunction fallbackMove(opts, leading, handLen){\n  if(opts.length===0) return leading?null:{type:\"pass\"};\n  const nonBig=opts.filter(m=>m.type!==\"bomb\"&&m.type!==\"rocket\");\n  nonBig.sort((a,b)=> a.value-b.value || a.len-b.len);\n  if(leading){ return (nonBig[0]||opts[0]); }\n  // 跟牌：手里牌多时用最小的能压的；牌很少或对方要赢时考虑炸\n  if(nonBig.length) return nonBig[0];\n  return Math.random()<0.5 ? opts[0] : {type:\"pass\"};\n}\n\nasync function aiTurn(p){\n  const leading = G.lastPlayer===p.idx || !G.lastMove;\n  let opts = generateAllMoves(p.hand);\n  if(!leading) opts = opts.filter(m=>canBeat(m,G.lastMove));\n  const options = curateOptions(opts, leading);\n\n  thinking(p.idx);\n\n  const human=G.players[0];\n  const others=G.players.filter(x=>x.idx!==p.idx).map(x=>`${x.name}(${x.role}，剩${x.hand.length}张)`).join(\"、\");\n  const optLines = options.map((m,i)=>`${i+1}. ${moveDesc(m)}`).join(\"\\n\");\n  const passLine = leading ? \"\" : \"0. 不出/过\\n\";\n  const lastStr = (leading||!G.lastMove) ? \"你是先手，可任意出牌。\" : `上一手是 ${G.players[G.lastPlayer].name} 打出的 ${moveDesc(G.lastMove)}，你要压过它或不出。`;\n  const myHand = sortHand(p.hand).map(c=>rankLabel(c.rank)).join(\" \");\n\n  const rule =\n`【斗地主对局】你是「${p.name}」，身份：${p.role}。和你同桌的还有：${others}。\n现在轮到你出牌。请保持你的人物性格，先用一句很短的口语吐槽/评论当前牌局（8~26字，符合你平时说话的语气，可以损人、可以得意、可以装弱），再选一个出牌编号。\n策略提示：地主要尽快走完手牌；两个农民要配合夹击地主，别压自己队友。手牌少的人优先出小牌跑牌；该留炸弹/王炸时别乱炸。\n你的手牌（${p.hand.length}张）：${myHand}\n${lastStr}\n可选出牌：\n${passLine}${optLines}\n只输出 JSON，不要任何多余文字、不要解释、不要代码块：\n{\"choice\": <编号数字>, \"say\": \"<一句吐槽>\"}`;\n\n  let raw=null;\n  if(p.charId && p.pkg){\n    const res=await Host.callLLM({ characterId:p.charId, messages:[...(p.pkg.messages||[]), {role:\"system\",content:rule}, {role:\"user\",content:\"请按规则出牌并吐槽。\"}] });\n    raw=res&&res.content;\n  } else {\n    const persona = p.npcPersona || \"一个爱开玩笑的牌友\";\n    const res=await Host.callGlobal({ messages:[\n      {role:\"system\",content:`你是这个斗地主小游戏里的一位系统牌友，名字叫「${p.name}」，性格：${persona}。你不是真实角色，只是临时陪玩的 NPC。${rule}`},\n      {role:\"user\",content:\"请按规则出牌并吐槽。\"}\n    ]});\n    raw=res&&res.content;\n  }\n\n  hideBubble(p.idx);\n\n  let choice=null, say=\"\";\n  if(raw){\n    try{\n      const j=JSON.parse(String(raw).replace(/```json|```/g,\"\").trim().replace(/^[^{]*/,\"\").replace(/[^}]*$/,\"\"));\n      choice=j.choice; say=(j.say||\"\").toString().slice(0,40);\n    }catch(e){ /* 解析失败走兜底 */ }\n  }\n\n  let move;\n  if(choice===0 && !leading){ move={type:\"pass\"}; }\n  else if(typeof choice===\"number\" && options[choice-1]){ move=options[choice-1]; }\n  else { move=fallbackMove(options, leading, p.hand.length); }\n  if(!move){ move=leading? (options[0]||null) : {type:\"pass\"}; }\n  if(!move){ move={type:\"pass\"}; }\n\n  p._lastSay = say || (move.type===\"pass\" ? randPass() : \"\");\n  await applyMoveAI(p.idx, move, say);\n}\nfunction randPass(){ const a=[\"这把我先看看\",\"压不过啊…\",\"过过过\",\"你们打吧\",\"留着炸你们\"]; return a[Math.floor(Math.random()*a.length)]; }\n\n// AI 版 applyMove（不递归 stepLoop，由外层循环推进）\nasync function applyMoveAI(idx, move, say){\n  const p=G.players[idx];\n  if(move.type===\"pass\"){\n    renderPlay(idx,{type:\"pass\"});\n    if(say) bubble(idx,say); else bubble(idx,randPass());\n  } else {\n    const ids=new Set(move.cards.map(c=>c.id));\n    p.hand=p.hand.filter(c=>!ids.has(c.id));\n    if(G.lastPlayer===idx || !G.lastMove){ clearPlays(); }\n    renderPlay(idx,move);\n    G.lastMove=move; G.lastPlayer=idx;\n    if(move.type===\"bomb\"||move.type===\"rocket\"){ G.multiplier*=2; renderHud(); }\n    if(say) bubble(idx,say);\n  }\n  renderCounts();\n  await Host.save(serialize());\n  if(p.hand.length===0){ await endGame(idx); }\n}\n\n/* =========================================================\n   叫地主\n   ========================================================= */\nasync function biddingPhase(){\n  G.phase=\"bidding\";\n  // 计算强度\n  G.players.forEach(p=>{ p._str=handStrength(p.hand); });\n  // 随机首叫\n  const first=Math.floor(Math.random()*3);\n  let bestBid=0, bestPlayer=-1;\n  const order=[0,1,2].map(i=>(first+i)%3);\n\n  for(const i of order){\n    const p=G.players[i];\n    if(p.isHuman){\n      const bid=await humanBid(bestBid);\n      if(bid>bestBid){ bestBid=bid; bestPlayer=i; }\n    } else {\n      // 启发式：强度→分数\n      const str=p._str; let bid=0;\n      if(str>=78) bid=3; else if(str>=58) bid=2; else if(str>=38) bid=1; else bid=0;\n      if(bid<=bestBid) bid = (str>=70 && bestBid<3) ? bestBid+1 : 0; // 抢一下\n      if(bid>3) bid=3;\n      $(\"centerInfo\").innerHTML=`<div class=\"vs\">${p.name}：${bid>0?(\"叫 \"+bid+\" 分\"):\"不叫\"}</div>`;\n      if(bid>0) bubble(i, bid>=3?\"我当地主！\":\"我叫\"+bid+\"分\");\n      else bubble(i,\"不叫，你们来\");\n      await wait(900);\n      if(bid>bestBid){ bestBid=bid; bestPlayer=i; }\n    }\n  }\n  if(bestPlayer<0){ // 都不叫 → 强度最高者当地主\n    bestPlayer=[0,1,2].sort((a,b)=>G.players[b]._str-G.players[a]._str)[0];\n    bestBid=1;\n  }\n  G.landlord=bestPlayer; G.baseScore=Math.max(1,bestBid);\n  // 发底牌\n  G.players[G.landlord].hand=G.players[G.landlord].hand.concat(G.bottomCards);\n  G.players.forEach((p,i)=> p.role = (i===G.landlord?\"地主\":\"农民\"));\n  G.turn=G.landlord; G.lastPlayer=G.landlord; G.lastMove=null;\n  G.phase=\"playing\";\n\n  // 揭示底牌\n  const dp=$(\"dipai\"); dp.querySelectorAll(\".card\").forEach(e=>e.remove());\n  G.bottomCards.forEach((c,i)=>{ const el=cardEl(c,true); el.classList.add(\"deal-anim\"); el.style.animationDelay=(i*0.1)+\"s\"; dp.appendChild(el); });\n\n  renderSeats(); renderHand(); renderHud(); renderTurn();\n  const ll=G.players[G.landlord];\n  $(\"centerInfo\").innerHTML=`<div class=\"vs\">${ll.name} 是地主！</div>`;\n  await Host.save(serialize());\n  await wait(1100);\n  await stepLoop();\n}\n\nfunction humanBid(currentBest){\n  return new Promise(resolve=>{\n    const ov=$(\"overlay\"), card=$(\"ovCard\");\n    card.innerHTML=`<h2>叫地主</h2><p>看看你的手牌，要不要争地主？${currentBest>0?(\"当前最高 \"+currentBest+\" 分\"):\"\"}</p>\n      <div class=\"bid-row\" id=\"bidRow\"></div>`;\n    const row=card.querySelector(\"#bidRow\");\n    const opts=[{t:\"不叫\",v:0,c:\"ghost\"},{t:\"1分\",v:1},{t:\"2分\",v:2},{t:\"3分\",v:3}];\n    opts.forEach(o=>{\n      const b=mkBtn(o.t,o.c||\"\",()=>{ ov.classList.remove(\"show\"); resolve(o.v); });\n      if(o.v>0 && o.v<=currentBest) b.disabled=true;\n      row.appendChild(b);\n    });\n    ov.classList.add(\"show\");\n  });\n}\n\n/* =========================================================\n   结算\n   ========================================================= */\nasync function endGame(winnerIdx){\n  if(G.over) return; G.over=true; G.phase=\"over\";\n  renderTurn(); $(\"actions\").innerHTML=\"\";\n  const winner=G.players[winnerIdx];\n  const landlordWon = winnerIdx===G.landlord;\n  const human=G.players[0];\n  const humanIsLandlord = G.landlord===0;\n  const humanWon = landlordWon ? humanIsLandlord : !humanIsLandlord;\n  const finalScore=G.baseScore*G.multiplier;\n\n  // 结束吐槽（赢家或地主说一句）\n  const speaker = G.players.find(p=>p.idx===winnerIdx) ;\n  let closing=\"\";\n  try{\n    if(speaker && speaker.charId && speaker.pkg){\n      const r=await Host.callLLM({characterId:speaker.charId, messages:[...(speaker.pkg.messages||[]),\n        {role:\"system\",content:`斗地主刚刚结束，${landlordWon?\"地主赢了\":\"农民赢了\"}，你是赢家「${speaker.name}」。用你的人物语气说一句很短的胜利/收尾的话（10~30字），对${human.name}说。只输出这句话。`},\n        {role:\"user\",content:\"说一句收尾的话。\"}]});\n      closing=(r&&r.content)?String(r.content).slice(0,50):\"\";\n    }\n  }catch(e){}\n\n  // 写入记忆（只写真实角色，使用真实名字）——一局只写一次\n  const realChars=G.players.filter(p=>p.charId);\n  if(realChars.length){\n    const charIds=realChars.map(p=>p.charId);\n    const names=realChars.map(p=>`${p.name}(${p.role})`).join(\"、\");\n    const resultText = humanWon\n      ? `${human.name}赢了，${realChars.filter(p=>p.role!==(humanIsLandlord?\"地主\":\"农民\")||p.role!==human.role).map(p=>p.name).join(\"、\")}这边没跑掉。`\n      : `${human.name}输了。`;\n    const sideText = landlordWon ? \"地主胜\" : \"农民胜\";\n    const summary = `${human.name}和${names}玩了一局斗地主，${human.name}当${humanIsLandlord?\"地主\":\"农民\"}，最后${sideText}（底分${G.baseScore}×倍数${G.multiplier}=${finalScore}分）。${realChars.map(p=>`${p.name}打牌时${p.role===\"地主\"?\"独挑大梁\":\"配合默契\"}`).join(\"，\")}。${humanWon?`${human.name}赢得很开心`:`${human.name}有点不服气，说下次再战`}。`;\n    await Host.record({ characterIds:charIds, summary });\n  }\n\n  // 结算面板\n  const ov=$(\"overlay\"), card=$(\"ovCard\");\n  const emoji = humanWon ? \"🎉\" : \"😵\";\n  const title = humanWon ? \"你赢了！\" : \"你输了…\";\n  card.innerHTML=`\n    <div class=\"result-emoji\">${emoji}</div>\n    <h2>${title}</h2>\n    <p>${landlordWon?\"地主\":\"农民\"}方获胜 · 底分 ${G.baseScore} × 倍数 ${G.multiplier}</p>\n    <div class=\"score-line\">本局结算：${humanWon?\"+\":\"-\"}${finalScore} 分</div>\n    ${closing?`<div class=\"summary-box\">「${speaker.name}」：${closing}</div>`:\"\"}\n    <div class=\"start-row\" style=\"margin-top:6px;\">\n      <button class=\"btn ghost\" id=\"quitBtn\">退出</button>\n      <button class=\"btn\" id=\"againBtn\">再来一局</button>\n    </div>`;\n  card.querySelector(\"#againBtn\").addEventListener(\"click\", ()=>{ ov.classList.remove(\"show\"); restart(); });\n  card.querySelector(\"#quitBtn\").addEventListener(\"click\", ()=> Host.close());\n  ov.classList.add(\"show\");\n  await Host.save(null); // 清存档\n}\n\n/* =========================================================\n   开局 / 发牌\n   ========================================================= */\nconst NPC_POOL=[\n  {name:\"老张\",persona:\"东北大哥，话痨，爱吹牛但牌品还行\"},\n  {name:\"小雨\",persona:\"软萌但贼精，喜欢卖惨然后偷偷憋大牌\"},\n  {name:\"K哥\",persona:\"沉默冷酷型，开口就是阴阳怪气\"},\n  {name:\"豆豆\",persona:\"急性子，输不起，爱嚷嚷\"},\n];\n\nasync function setupNewGame(){\n  $(\"centerInfo\").innerHTML=`<div class=\"vs\">发牌中…</div>`;\n  clearPlays(); $(\"dipai\").querySelectorAll(\".card\").forEach(e=>e.remove());\n  selected.clear(); hintList=[]; hintIdx=0;\n  G.over=false; G.multiplier=1; G.baseScore=1; G.lastMove=null;\n\n  const player=await Host.player();\n  const myName=(player && player.name) ? player.name : \"你\";\n\n  // 组装三个座位\n  const seats=[{idx:0,name:myName,isHuman:true}];\n  const chosen=G.selectedChars.slice(0,2);\n  // 座位 1、2\n  let seatNames=[1,2];\n  for(let s=0;s<2;s++){\n    const ch=chosen[s];\n    if(ch){\n      seats.push({idx:seatNames[s], name:ch.name, avatar:ch.avatar, isHuman:false, charId:ch.id, pkg:null});\n    } else {\n      const used=new Set(seats.map(x=>x.name));\n      const npc=NPC_POOL.filter(n=>!used.has(n.name))[Math.floor(Math.random()*Math.max(1,NPC_POOL.length-seats.length+1))]||NPC_POOL[0];\n      seats.push({idx:seatNames[s], name:npc.name, isHuman:false, charId:null, npcPersona:npc.persona});\n    }\n  }\n  // 让座位按 idx 排\n  seats.sort((a,b)=>a.idx-b.idx);\n  G.players=seats.map(s=>({...s, hand:[], role:null, _lastSay:\"\"}));\n\n  // 预取角色轻量包\n  $(\"centerInfo\").innerHTML=`<div class=\"vs\">准备角色中…</div>`;\n  for(const p of G.players){ if(p.charId){ p.pkg=await Host.light(p.charId); } }\n\n  // 发牌\n  const deck=shuffle(buildDeck());\n  G.players[0].hand=deck.slice(0,17);\n  G.players[1].hand=deck.slice(17,34);\n  G.players[2].hand=deck.slice(34,51);\n  G.bottomCards=deck.slice(51,54);\n\n  // 底牌占位（背面）\n  const dp=$(\"dipai\"); dp.querySelectorAll(\".card\").forEach(e=>e.remove());\n  for(let i=0;i<3;i++){ const b=document.createElement(\"div\"); b.className=\"cback\"; b.style.width=\"34px\"; b.style.height=\"48px\"; if(i>0) b.style.marginLeft=\"-10px\"; dp.appendChild(b); }\n\n  renderSeats(); renderHand(); renderHud();\n  show(\"game\");\n  await Host.titleBar({ material:\"glass\", buttonBackground:\"rgba(8,40,28,.6)\", buttonColor:\"#f1c45a\", buttonBorderColor:\"rgba(241,196,90,.35)\", buttonRadius:\"999px\", buttonShadow:\"0 8px 20px rgba(0,0,0,.3)\", iconOpacity:1 });\n  await wait(400);\n  await biddingPhase();\n}\nfunction restart(){ setupNewGame(); }\n\n/* =========================================================\n   存档（best-effort）\n   ========================================================= */\nfunction serialize(){\n  if(G.phase!==\"playing\") return null;\n  return {\n    v:1, phase:G.phase, turn:G.turn, landlord:G.landlord,\n    baseScore:G.baseScore, multiplier:G.multiplier,\n    lastPlayer:G.lastPlayer, lastMove:G.lastMove,\n    bottomCards:G.bottomCards,\n    players:G.players.map(p=>({idx:p.idx,name:p.name,avatar:p.avatar||null,isHuman:p.isHuman,charId:p.charId||null,npcPersona:p.npcPersona||null,hand:p.hand,role:p.role}))\n  };\n}\nasync function tryResume(save){\n  try{\n    G.phase=\"playing\"; G.turn=save.turn; G.landlord=save.landlord;\n    G.baseScore=save.baseScore; G.multiplier=save.multiplier;\n    G.lastPlayer=save.lastPlayer; G.lastMove=save.lastMove; G.bottomCards=save.bottomCards||[];\n    G.over=false;\n    G.players=save.players.map(p=>({...p, pkg:null, _lastSay:\"\"}));\n    for(const p of G.players){ if(p.charId){ p.pkg=await Host.light(p.charId); } }\n    show(\"game\");\n    await Host.titleBar({ material:\"glass\", buttonBackground:\"rgba(8,40,28,.6)\", buttonColor:\"#f1c45a\", buttonBorderColor:\"rgba(241,196,90,.35)\", buttonRadius:\"999px\", iconOpacity:1 });\n    // 底牌显示\n    const dp=$(\"dipai\"); dp.querySelectorAll(\".card\").forEach(e=>e.remove());\n    G.bottomCards.forEach(c=>{ dp.appendChild(cardEl(c,true)); });\n    renderSeats(); renderHand(); renderHud(); renderTurn(); clearPlays();\n    await wait(300);\n    await stepLoop();\n  }catch(e){ setupNewGame(); }\n}\n\n/* =========================================================\n   角色选择界面\n   ========================================================= */\nfunction renderCharList(){\n  const box=$(\"charList\"); box.innerHTML=\"\";\n  if(!allChars.length){\n    box.innerHTML=`<div class=\"empty-note\">没有读到可选角色。<br>没关系，直接开始也行，系统会安排两位牌友陪你打。</div>`;\n    return;\n  }\n  allChars.forEach(ch=>{\n    const sel=humanSelection.some(x=>x.id===ch.id);\n    const d=document.createElement(\"div\");\n    d.className=\"char-card\"+(sel?\" sel\":\"\");\n    d.innerHTML=`<div class=\"avatar\">${ch.avatar?`<img src=\"${ch.avatar}\" style=\"width:100%;height:100%;object-fit:cover;border-radius:50%;\" onerror=\"this.remove()\">`:(ch.name?ch.name[0]:\"?\")}</div>\n      <div class=\"meta\"><div class=\"nm\">${ch.name||\"未命名\"}</div><div class=\"sub\">${ch.subtitle||\"\"}</div></div>\n      <div class=\"tick\">${sel?\"✓\":\"\"}</div>`;\n    d.addEventListener(\"click\",()=>toggleChar(ch));\n    box.appendChild(d);\n  });\n}\nfunction toggleChar(ch){\n  const i=humanSelection.findIndex(x=>x.id===ch.id);\n  if(i>=0) humanSelection.splice(i,1);\n  else { if(humanSelection.length>=2){ toast(\"最多选 2 位哦\"); return; } humanSelection.push(ch); }\n  renderCharList();\n}\n\n/* =========================================================\n   启动\n   ========================================================= */\nasync function init(){\n  allChars = await Host.listCharacters();\n  renderCharList();\n  // 检查存档\n  const save=await Host.load();\n  if(save && save.phase===\"playing\"){ $(\"resumeBtn\").style.display=\"block\"; $(\"resumeBtn\").addEventListener(\"click\",()=>tryResume(save)); }\n\n  $(\"startBtn\").addEventListener(\"click\", async ()=>{\n    G.selectedChars=humanSelection.slice(0,2);\n    $(\"startBtn\").disabled=true; $(\"startBtn\").textContent=\"发牌中…\";\n    await setupNewGame();\n    $(\"startBtn\").disabled=false; $(\"startBtn\").textContent=\"开始游戏\";\n  });\n}\ninit();\n</script>\n</body>\n</html>";
+// 跳一跳·对决：内置版本（与大堂安装版一致，可直接读取角色、写回记忆）
+export const TIAOYITIAO_GAME_HTML = String.raw`<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<title>跳一跳 · 对决</title>
+<style>
+  :root{
+    --ink:#eaf2ff; --dim:#93a2c4; --acc:#6ee7ff; --acc2:#a78bfa; --warn:#ff8a8a;
+    --panel:rgba(18,24,44,.72); --line:rgba(140,170,255,.18);
+  }
+  *{ -webkit-tap-highlight-color:transparent; box-sizing:border-box; }
+  html,body{ width:100%; height:100%; margin:0; overflow:hidden;
+    background:radial-gradient(120% 80% at 50% 0%, #16204a 0%, #0a0e1e 55%, #05070f 100%);
+    color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+    user-select:none; }
+  #app{ position:fixed; inset:0; display:flex; flex-direction:column; }
+  #hud{ position:relative; z-index:5; flex:0 0 auto;
+    padding:var(--ai-phone-game-safe-top,88px) 14px 8px; }
+  #hudRow{ display:flex; align-items:center; gap:10px; }
+  .side{ flex:1 1 0; min-width:0; display:flex; align-items:center; gap:8px;
+    background:var(--panel); border:1px solid var(--line); border-radius:14px;
+    padding:7px 9px; backdrop-filter:blur(8px); transition:.2s; }
+  .side.me{ justify-content:flex-end; }
+  .side.on{ border-color:rgba(110,231,255,.55); box-shadow:0 0 0 1px rgba(110,231,255,.18),0 6px 20px rgba(60,120,255,.18); }
+  .side.on.foe{ border-color:rgba(167,139,250,.6); box-shadow:0 0 0 1px rgba(167,139,250,.2),0 6px 20px rgba(140,80,255,.18); }
+  .av{ width:26px; height:26px; border-radius:9px; flex:0 0 auto; background:rgba(120,150,255,.18);
+    display:flex; align-items:center; justify-content:center; font-size:13px; overflow:hidden; }
+  .av img{ width:100%; height:100%; object-fit:cover; }
+  .meta{ min-width:0; }
+  .nm{ font-size:11px; color:var(--dim); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:80px; }
+  .sc{ font-size:17px; font-weight:700; line-height:1.1; font-variant-numeric:tabular-nums; }
+  .vs{ flex:0 0 auto; font-size:10px; color:#5f6d90; letter-spacing:1px; padding:0 2px; }
+  #turnTip{ margin:8px 2px 0; text-align:center; font-size:12px; color:var(--dim); height:16px;
+    transition:.2s; }
+  #turnTip b{ color:var(--acc); font-weight:600; }
+  #stage{ position:relative; flex:1 1 auto; min-height:0; }
+  #cv{ position:absolute; inset:0; width:100%; height:100%; display:block; }
+  #say{ position:absolute; left:50%; top:8px; transform:translate(-50%,-8px);
+    max-width:78%; padding:8px 13px; border-radius:14px; font-size:13px; line-height:1.45;
+    background:rgba(20,26,48,.9); border:1px solid var(--line); color:#dbe6ff;
+    opacity:0; pointer-events:none; transition:opacity .25s, transform .25s; text-align:center; }
+  #say.show{ opacity:1; transform:translate(-50%,0); }
+  #say .who{ color:var(--acc2); font-size:11px; display:block; margin-bottom:2px; }
+  #float{ position:absolute; inset:0; pointer-events:none; overflow:hidden; }
+  .mark{ position:absolute; font-size:14px; font-weight:700; color:var(--acc);
+    text-shadow:0 2px 10px rgba(0,0,0,.5); animation:up .9s ease-out forwards; white-space:nowrap; }
+  .mark.bad{ color:var(--warn); }
+  .mark.perfect{ color:#ffd479; }
+  @keyframes up{ 0%{opacity:0;transform:translate(-50%,0) scale(.8)} 25%{opacity:1;transform:translate(-50%,-8px) scale(1.06)} 100%{opacity:0;transform:translate(-50%,-46px) scale(1)} }
+  #bottom{ position:relative; z-index:5; flex:0 0 auto;
+    padding:6px 16px calc(var(--ai-phone-game-safe-bottom,24px) + 6px); }
+  #powerWrap{ height:8px; border-radius:99px; background:rgba(255,255,255,.08); overflow:hidden; margin-bottom:10px; }
+  #powerBar{ height:100%; width:0%; border-radius:99px;
+    background:linear-gradient(90deg,#6ee7ff,#a78bfa 60%,#ffd479); transition:width .04s linear; }
+  #tapBtn{ width:100%; padding:15px 10px; border-radius:18px; border:1px solid rgba(140,180,255,.28);
+    background:linear-gradient(180deg,rgba(70,110,220,.34),rgba(40,60,140,.28));
+    color:#eaf2ff; font-size:15px; font-weight:600; letter-spacing:.5px;
+    box-shadow:0 8px 24px rgba(30,60,160,.28); transition:.12s; }
+  #tapBtn:active{ transform:scale(.985); background:linear-gradient(180deg,rgba(90,140,255,.5),rgba(50,80,180,.4)); }
+  #tapBtn:disabled{ opacity:.42; }
+  #hint{ text-align:center; font-size:11px; color:#6b7a9e; margin-top:8px; height:14px; }
+  .sheet{ position:absolute; inset:0; z-index:20; display:flex; flex-direction:column;
+    background:rgba(6,9,20,.82); backdrop-filter:blur(10px);
+    padding:var(--ai-phone-game-safe-top,88px) 20px calc(var(--ai-phone-game-safe-bottom,24px) + 14px); }
+  .sheet.hide{ display:none; }
+  .sheet h1{ font-size:24px; margin:4px 0 2px; letter-spacing:1px; }
+  .sheet h1 span{ color:var(--acc); }
+  .sheet .sub{ color:var(--dim); font-size:12px; line-height:1.7; margin-bottom:14px; }
+  .list{ flex:1 1 auto; min-height:0; overflow-y:auto; -webkit-overflow-scrolling:touch;
+    display:flex; flex-direction:column; gap:9px; padding-right:2px; }
+  .card{ display:flex; align-items:center; gap:11px; padding:11px 13px; border-radius:15px;
+    background:rgba(255,255,255,.05); border:1px solid var(--line); transition:.15s; }
+  .card.sel{ background:rgba(110,231,255,.12); border-color:rgba(110,231,255,.55); }
+  .card .av{ width:38px; height:38px; border-radius:12px; font-size:16px; }
+  .card .t{ min-width:0; flex:1 1 auto; }
+  .card .t b{ display:block; font-size:14px; margin-bottom:2px; }
+  .card .t i{ font-style:normal; font-size:11px; color:var(--dim); display:block;
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .btn{ width:100%; padding:15px; border-radius:16px; border:none; font-size:15px; font-weight:600;
+    background:linear-gradient(135deg,#6ee7ff,#a78bfa); color:#0a1020; margin-top:12px;
+    box-shadow:0 10px 28px rgba(110,231,255,.22); }
+  .btn:active{ transform:scale(.985); }
+  .btn.ghost{ background:rgba(255,255,255,.07); color:var(--ink);
+    border:1px solid var(--line); box-shadow:none; font-weight:500; }
+  .btn[disabled]{ opacity:.5; }
+  .empty{ color:var(--dim); font-size:12px; text-align:center; padding:22px 8px; line-height:1.7; }
+  .lvRow{ display:flex; gap:8px; margin-bottom:6px; }
+  .lv{ flex:1 1 0; padding:10px 4px; border-radius:12px; font-size:13px; font-weight:600;
+    background:rgba(255,255,255,.05); color:var(--dim); border:1px solid var(--line); transition:.15s; }
+  .lv.on{ color:#0a1020; background:linear-gradient(135deg,#6ee7ff,#a78bfa); border-color:transparent;
+    box-shadow:0 6px 18px rgba(110,231,255,.22); }
+  .lv[data-lv="hell"].on{ background:linear-gradient(135deg,#ff9a9a,#ff5d8f); box-shadow:0 6px 18px rgba(255,110,140,.24); }
+  .lvDesc{ font-size:11px; color:#6b7a9e; margin-bottom:10px; text-align:center; height:14px; }
+  .skinLabel{ display:flex; align-items:baseline; justify-content:space-between;
+    font-size:11px; color:var(--dim); margin:0 2px 6px; }
+  .skinLabel b{ font-size:10px; font-weight:500; color:#7b88a8; }
+  .lockToast{ position:absolute; left:50%; bottom:calc(var(--ai-phone-game-safe-bottom,24px) + 92px);
+    transform:translate(-50%,8px); max-width:80%; padding:9px 14px; border-radius:12px;
+    background:rgba(60,26,40,.96); border:1px solid rgba(255,138,138,.4);
+    color:#ffd5d5; font-size:12px; text-align:center; white-space:nowrap;
+    opacity:0; pointer-events:none; transition:opacity .22s, transform .22s; z-index:5; }
+  .lockToast.show{ opacity:1; transform:translate(-50%,0); }
+  .skinLabel span{ cursor:default; user-select:none; }
+  .skinLabel span.dev{ color:#ffd479; }
+  .skinLabel span.dev::after{ content:' · 开发者'; font-size:9px; opacity:.85; }
+  .skinRow{ display:flex; gap:8px; overflow-x:auto; -webkit-overflow-scrolling:touch;
+    padding:0 0 10px; margin-bottom:2px; }
+  .skinRow::-webkit-scrollbar{ display:none; }
+  .skin{ flex:0 0 auto; width:56px; padding:8px 4px 6px; border-radius:12px;
+    background:rgba(255,255,255,.05); border:1px solid var(--line);
+    display:flex; flex-direction:column; align-items:center; gap:6px; transition:.15s; }
+  .skin.on{ background:rgba(255,255,255,.1); }
+  .skin i{ width:15px; height:21px; border-radius:6px; display:block; }
+  .skin span{ font-size:10px; color:var(--dim); white-space:nowrap; }
+  .skin.on span{ color:var(--ink); }
+  .skin.locked{ opacity:.5; background:rgba(255,255,255,.02); cursor:not-allowed; }
+  .skin.locked i{ filter:grayscale(1); position:relative; }
+  .skin.locked span{ color:#5e6a88; }
+  .skin.locked::after{ content:'✕'; position:absolute; font-size:20px; color:rgba(255,110,110,.5);
+    pointer-events:none; }
+  .skin{ position:relative; }
+  .skin em{ font-style:normal; font-size:9px; color:#7b88a8; white-space:nowrap; }
+  .skin.premium{ width:64px; border-width:1.5px; }
+  .skin.premium:not(.locked){ border-color:rgba(255,207,77,.6);
+    background:linear-gradient(180deg,rgba(255,207,77,.16),rgba(255,158,196,.08));
+    box-shadow:0 0 16px rgba(255,190,61,.22); }
+  .skin.premium span{ color:#ffe9a8; }
+  .skin.premium i{ width:17px; height:24px; }
+  .skin .pv{ position:absolute; top:-6px; right:-4px; font-size:8px; letter-spacing:.5px;
+    color:#3a2a05; background:linear-gradient(135deg,#ffe9a8,#ffbe3d);
+    padding:1px 5px; border-radius:99px; font-weight:700; }
+  #soundBtn{ position:absolute; right:10px; top:calc(var(--ai-phone-game-safe-top,88px) + 26px);
+    z-index:12; width:34px; height:34px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    background:rgba(18,24,44,.72); border:1px solid var(--line); color:#c8d6f5;
+    backdrop-filter:blur(8px); transition:.18s; }
+  #soundBtn:active{ transform:scale(.92); }
+  #soundBtn.on{ color:var(--acc); border-color:rgba(110,231,255,.42); }
+  #soundBtn .slash{ display:none; }
+  #soundBtn.muted .wave1,
+  #soundBtn.muted .wave2{ display:none; }
+  #soundBtn.muted .slash{ display:block; stroke:#ff8a8a; }
+  #soundBtn.muted{ color:#8e9ab8; }
+  #autoBtn{ position:absolute; right:10px; top:calc(var(--ai-phone-game-safe-top,88px) + 68px);
+    z-index:12; width:34px; height:34px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    background:rgba(18,24,44,.72); border:1px solid var(--line); color:#5f6d90;
+    backdrop-filter:blur(8px); transition:.18s; }
+  #autoBtn:active{ transform:scale(.92); }
+  #autoBtn.on{ color:#ffd479; border-color:rgba(255,212,121,.55);
+    box-shadow:0 0 14px rgba(255,190,61,.32); }
+  #autoBadge{ position:absolute; right:52px; top:calc(var(--ai-phone-game-safe-top,88px) + 76px);
+    z-index:12; font-size:10px; letter-spacing:1px; color:#ffd479;
+    background:rgba(60,44,18,.9); border:1px solid rgba(255,212,121,.4);
+    padding:3px 8px; border-radius:99px; opacity:0; transition:.2s; pointer-events:none; }
+  #autoBadge.show{ opacity:1; }
+  #unlockToast{ position:absolute; left:50%; top:calc(var(--ai-phone-game-safe-top,88px) + 54px);
+    transform:translate(-50%,-14px) scale(.94); z-index:30; pointer-events:none;
+    min-width:190px; max-width:82%; padding:13px 16px; border-radius:16px;
+    background:linear-gradient(160deg,rgba(38,48,86,.97),rgba(22,28,54,.97));
+    border:1px solid rgba(255,212,121,.45);
+    box-shadow:0 14px 38px rgba(0,0,0,.5),0 0 0 1px rgba(255,212,121,.1) inset;
+    opacity:0; transition:opacity .26s, transform .26s; }
+  #unlockToast.show{ opacity:1; transform:translate(-50%,0) scale(1); }
+  #unlockToast .ut{ display:flex; align-items:center; gap:10px; }
+  #unlockToast .udot{ width:26px; height:34px; border-radius:9px; flex:0 0 auto; }
+  #unlockToast .uc{ min-width:0; }
+  #unlockToast .uh{ font-size:10px; letter-spacing:2px; color:#ffd479; margin-bottom:3px; }
+  #unlockToast .un{ font-size:14px; font-weight:700; color:#f2f7ff; }
+  #unlockToast .us{ font-size:11px; color:#93a2c4; margin-top:3px; line-height:1.5; }
+  .bubbleWrap{ margin-top:12px; }
+  .bubbleWrap.hide{ display:none; }
+  .bubbleWho{ font-size:11px; color:var(--acc2); margin:0 2px 5px; }
+  .previewTip{ margin-top:8px; font-size:11px; line-height:1.65; color:#ffd0a8;
+    background:rgba(90,60,20,.4); border:1px solid rgba(255,190,120,.3);
+    border-radius:10px; padding:8px 11px; }
+  .bubble{ position:relative; display:inline-block; max-width:100%; padding:10px 14px;
+    border-radius:16px 16px 16px 5px; font-size:13px; line-height:1.7;
+    background:rgba(110,231,255,.12); border:1px solid rgba(110,231,255,.3); color:#e6f2ff; }
+  #over .big{ font-size:40px; font-weight:800; text-align:center; margin:6px 0 2px;
+    font-variant-numeric:tabular-nums; background:linear-gradient(135deg,#6ee7ff,#a78bfa);
+    -webkit-background-clip:text; background-clip:text; color:transparent; }
+  #over .winner{ text-align:center; font-size:15px; margin-bottom:12px; color:#dfe9ff; }
+  #over .rowbox{ display:flex; gap:10px; margin:4px 0 12px; }
+  #over .cell{ flex:1 1 0; background:rgba(255,255,255,.05); border:1px solid var(--line);
+    border-radius:14px; padding:10px; text-align:center; }
+  #over .cell i{ font-style:normal; display:block; font-size:11px; color:var(--dim); margin-bottom:3px; }
+  #over .cell b{ font-size:20px; font-variant-numeric:tabular-nums; }
+  #over .cmt{ font-size:12.5px; line-height:1.75; color:#cfdaf5; background:rgba(167,139,250,.1);
+    border:1px solid rgba(167,139,250,.24); border-radius:14px; padding:11px 13px; }
+  .loader{ display:inline-block; width:13px; height:13px; border-radius:50%;
+    border:2px solid rgba(255,255,255,.25); border-top-color:var(--acc);
+    animation:spin .7s linear infinite; vertical-align:-2px; margin-right:6px; }
+  @keyframes spin{ to{ transform:rotate(360deg); } }
+  .scroll{ flex:1 1 auto; min-height:0; overflow-y:auto; -webkit-overflow-scrolling:touch; }
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="hud">
+    <div id="hudRow">
+      <div class="side me" id="sideMe">
+        <div class="av" id="avMe">我</div>
+        <div class="meta"><div class="nm" id="nmMe">我</div><div class="sc" id="scMe">0</div></div>
+      </div>
+      <div class="vs">VS</div>
+      <div class="side foe" id="sideFoe">
+        <div class="meta" style="text-align:right"><div class="nm" id="nmFoe">对手</div><div class="sc" id="scFoe">0</div></div>
+        <div class="av" id="avFoe">AI</div>
+      </div>
+    </div>
+    <div id="turnTip">准备开始</div>
+  </div>
 
-export const TRUTH_OR_DARE_GAME_HTML = "<!doctype html>\n<html lang=\"zh-CN\">\n<head>\n<meta charset=\"utf-8\" />\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover\" />\n<title>真心话大冒险</title>\n<style>\n  :root{\n    --safe-top: var(--ai-phone-game-safe-top, 88px);\n    --safe-bottom: var(--ai-phone-game-safe-bottom, 24px);\n    --bg0:#160d20; --bg1:#241133; --bg2:#3a1942;\n    --ink:#f5ecf7; --muted:#c4b2d6; --faint:rgba(245,236,247,.55);\n    --amber:#ffc16b; --rose:#ff8fae; --violet:#b98cff;\n    --glass:rgba(255,255,255,.06);\n    --glass-strong:rgba(255,255,255,.1);\n    --line:rgba(255,255,255,.12);\n    --serif:\"Songti SC\",\"Noto Serif SC\",\"STSong\",serif;\n    --sans:-apple-system,BlinkMacSystemFont,\"PingFang SC\",\"Microsoft YaHei\",sans-serif;\n  }\n  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}\n  html,body{width:100%;height:100%;margin:0;}\n  body{\n    overflow:hidden;\n    font-family:var(--sans);\n    color:var(--ink);\n    background:\n      radial-gradient(120% 80% at 50% -10%, #4a1f55 0%, rgba(74,31,85,0) 55%),\n      radial-gradient(90% 60% at 80% 110%, #5a2546 0%, rgba(90,37,70,0) 60%),\n      linear-gradient(160deg, var(--bg0), var(--bg1) 60%, var(--bg2));\n  }\n  /* 烛光浮尘 */\n  body::after{\n    content:\"\";position:fixed;inset:0;pointer-events:none;z-index:0;\n    background:\n      radial-gradient(2px 2px at 20% 30%, rgba(255,193,107,.5), transparent),\n      radial-gradient(2px 2px at 70% 60%, rgba(255,143,174,.4), transparent),\n      radial-gradient(1.5px 1.5px at 40% 80%, rgba(185,140,255,.4), transparent),\n      radial-gradient(1.5px 1.5px at 85% 25%, rgba(255,255,255,.35), transparent);\n    opacity:.7;\n  }\n\n  .game-screen{\n    position:relative;z-index:1;\n    min-height:100%;height:100%;\n    box-sizing:border-box;\n    padding:var(--safe-top) 18px var(--safe-bottom);\n    overflow-y:auto;-webkit-overflow-scrolling:touch;\n    display:flex;flex-direction:column;\n  }\n\n  /* ---------- 通用 ---------- */\n  .title{font-family:var(--serif);font-weight:600;letter-spacing:.08em;}\n  .btn{\n    border:1px solid var(--line);border-radius:999px;\n    padding:13px 22px;font-size:15px;font-weight:600;color:var(--ink);\n    background:var(--glass-strong);backdrop-filter:blur(12px);\n    transition:transform .15s ease, background .2s, opacity .2s;\n    cursor:pointer;user-select:none;\n  }\n  .btn:active{transform:scale(.96);}\n  .btn.primary{\n    border:none;color:#2a1230;\n    background:linear-gradient(135deg, var(--amber), var(--rose));\n    box-shadow:0 10px 30px rgba(255,143,174,.3);\n  }\n  .btn.ghost{background:transparent;}\n  .btn[disabled]{opacity:.35;pointer-events:none;}\n  .fade{animation:fade .5s ease both;}\n  @keyframes fade{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:none;}}\n  .hidden{display:none !important;}\n\n  /* ---------- 选人页 ---------- */\n  #screen-select{flex:1;display:flex;flex-direction:column;}\n  .head{text-align:center;margin:6px 0 18px;}\n  .head h1{font-size:30px;margin:0;}\n  .head .sub{color:var(--faint);font-size:13px;margin-top:8px;letter-spacing:.12em;}\n  .pick-hint{text-align:center;color:var(--muted);font-size:13px;margin-bottom:12px;}\n  .char-list{display:flex;flex-direction:column;gap:12px;overflow-y:auto;flex:1;padding-bottom:6px;}\n  .char-card{\n    display:flex;align-items:center;gap:14px;padding:12px 14px;\n    border:1px solid var(--line);border-radius:18px;background:var(--glass);\n    transition:transform .15s, border-color .2s, background .2s;cursor:pointer;\n  }\n  .char-card:active{transform:scale(.98);}\n  .char-card.sel{border-color:var(--rose);background:rgba(255,143,174,.12);\n    box-shadow:0 0 0 1px var(--rose) inset, 0 8px 24px rgba(255,143,174,.18);}\n  .avatar{\n    width:52px;height:52px;border-radius:50%;flex:none;overflow:hidden;\n    display:grid;place-items:center;font-family:var(--serif);font-size:20px;color:#2a1230;\n    background:linear-gradient(135deg,var(--amber),var(--violet));\n    box-shadow:0 4px 14px rgba(0,0,0,.3);\n  }\n  .avatar img{width:100%;height:100%;object-fit:cover;display:block;}\n  .char-meta{flex:1;min-width:0;}\n  .char-meta .nm{font-weight:600;font-size:16px;}\n  .char-meta .st{color:var(--faint);font-size:12px;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}\n  .check{width:24px;height:24px;border-radius:50%;border:1.5px solid var(--line);flex:none;display:grid;place-items:center;color:#2a1230;font-size:14px;}\n  .char-card.sel .check{background:var(--rose);border-color:var(--rose);}\n  .footer{padding-top:14px;}\n  .footer .btn{width:100%;}\n\n  /* ---------- 牌桌 ---------- */\n  #screen-table{flex:1;display:flex;flex-direction:column;}\n  .round-tag{text-align:center;color:var(--muted);font-size:12px;letter-spacing:.2em;margin-bottom:6px;}\n  .stage{position:relative;width:min(80vw,330px);aspect-ratio:1;margin:6px auto 4px;}\n  .table-ring{\n    position:absolute;inset:8%;border-radius:50%;\n    border:1px solid var(--line);\n    background:radial-gradient(circle at 50% 40%, rgba(255,193,107,.10), rgba(0,0,0,.25) 70%);\n    box-shadow:inset 0 0 50px rgba(0,0,0,.4);\n  }\n  .glow{\n    position:absolute;left:50%;top:50%;width:46%;height:46%;\n    transform:translate(-50%,-50%);border-radius:50%;\n    background:radial-gradient(circle, rgba(255,160,120,.35), transparent 70%);\n    filter:blur(6px);animation:breathe 3.6s ease-in-out infinite;\n  }\n  @keyframes breathe{0%,100%{opacity:.55;transform:translate(-50%,-50%) scale(.9);}50%{opacity:.9;transform:translate(-50%,-50%) scale(1.05);}}\n  .bottle-wrap{\n    position:absolute;left:50%;top:50%;width:18%;height:54%;\n    transform-origin:50% 50%;transform:translate(-50%,-50%) rotate(0deg);\n    transition:transform 2.8s cubic-bezier(.17,.67,.21,1);\n  }\n  .bottle{width:100%;height:100%;filter:drop-shadow(0 6px 14px rgba(0,0,0,.45));}\n  .seat{\n    position:absolute;width:64px;transform:translate(-50%,-50%);\n    text-align:center;transition:transform .25s;\n  }\n  .seat .avatar{width:54px;height:54px;margin:0 auto;border:2px solid transparent;}\n  .seat .nm{font-size:12px;margin-top:5px;color:var(--muted);white-space:nowrap;}\n  .seat.me .nm{color:var(--amber);}\n  .seat.active .avatar{border-color:var(--rose);box-shadow:0 0 0 4px rgba(255,143,174,.25),0 6px 18px rgba(255,143,174,.4);transform:scale(1.08);}\n  .seat.active .nm{color:var(--rose);font-weight:700;}\n\n  .panel{\n    flex:1;display:flex;flex-direction:column;gap:12px;\n    margin-top:4px;\n  }\n  .card{\n    border:1px solid var(--line);border-radius:20px;padding:16px 16px 18px;\n    background:var(--glass);backdrop-filter:blur(14px);\n  }\n  .card .who{font-size:12px;color:var(--faint);letter-spacing:.1em;margin-bottom:8px;}\n  .card .q{font-size:17px;line-height:1.6;font-family:var(--serif);}\n  .typebadge{display:inline-block;font-size:12px;font-weight:700;letter-spacing:.1em;\n    padding:4px 12px;border-radius:999px;margin-bottom:10px;}\n  .typebadge.truth{background:rgba(185,140,255,.18);color:var(--violet);border:1px solid rgba(185,140,255,.4);}\n  .typebadge.dare{background:rgba(255,193,107,.16);color:var(--amber);border:1px solid rgba(255,193,107,.4);}\n\n  .bubble{display:flex;gap:10px;align-items:flex-start;}\n  .bubble .avatar{width:40px;height:40px;font-size:16px;}\n  .bubble .body{flex:1;}\n  .bubble .nm{font-size:13px;color:var(--rose);font-weight:600;margin-bottom:4px;}\n  .bubble .txt{font-size:15px;line-height:1.65;color:var(--ink);}\n  .bubble.react .nm{color:var(--violet);}\n  .bubble.react .txt{color:var(--muted);font-size:14px;}\n\n  .answer-box{display:flex;flex-direction:column;gap:10px;}\n  textarea{\n    width:100%;min-height:84px;resize:none;border-radius:16px;padding:12px 14px;\n    border:1px solid var(--line);background:rgba(0,0,0,.25);color:var(--ink);\n    font-family:var(--sans);font-size:15px;line-height:1.5;outline:none;\n  }\n  textarea:focus{border-color:var(--rose);}\n\n  .choose-row{display:flex;gap:12px;}\n  .choose-row .btn{flex:1;}\n  .actions{display:flex;gap:12px;margin-top:auto;padding-top:6px;}\n  .actions .btn{flex:1;}\n\n  .loading{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:14px;}\n  .dots{display:inline-flex;gap:4px;}\n  .dots i{width:6px;height:6px;border-radius:50%;background:var(--rose);animation:bnc 1s infinite;}\n  .dots i:nth-child(2){animation-delay:.15s;}\n  .dots i:nth-child(3){animation-delay:.3s;}\n  @keyframes bnc{0%,80%,100%{transform:translateY(0);opacity:.4;}40%{transform:translateY(-5px);opacity:1;}}\n\n  .history{margin-top:14px;display:flex;flex-direction:column;gap:8px;}\n  .history .h-title{font-size:12px;color:var(--faint);letter-spacing:.2em;text-align:center;margin:6px 0;}\n  .h-item{font-size:13px;color:var(--muted);line-height:1.5;border-left:2px solid var(--line);padding:2px 0 2px 12px;}\n  .h-item b{color:var(--ink);font-weight:600;}\n\n  /* ---------- 结局 ---------- */\n  #screen-end{flex:1;display:flex;flex-direction:column;justify-content:center;text-align:center;gap:18px;}\n  #screen-end h2{font-family:var(--serif);font-size:26px;margin:0;}\n  .recap{border:1px solid var(--line);border-radius:20px;background:var(--glass);\n    padding:18px;text-align:left;max-height:46vh;overflow-y:auto;}\n  .recap .line{font-size:14px;line-height:1.6;color:var(--muted);margin:8px 0;}\n  .recap .line b{color:var(--ink);}\n  .memo{font-size:13px;color:var(--amber);letter-spacing:.05em;}\n  .end-actions{display:flex;flex-direction:column;gap:12px;}\n</style>\n</head>\n<body>\n<div class=\"game-screen\">\n\n  <!-- 选人页 -->\n  <section id=\"screen-select\">\n    <div class=\"head fade\">\n      <h1 class=\"title\">真心话大冒险</h1>\n      <div class=\"sub\">TRUTH&nbsp;·&nbsp;OR&nbsp;·&nbsp;DARE</div>\n    </div>\n    <div class=\"pick-hint\" id=\"pickHint\">挑 3 个人，和你一起围坐这一晚</div>\n    <div class=\"char-list\" id=\"charList\"></div>\n    <div class=\"footer\">\n      <button class=\"btn primary\" id=\"startBtn\" disabled>开始游戏</button>\n    </div>\n  </section>\n\n  <!-- 牌桌 -->\n  <section id=\"screen-table\" class=\"hidden\">\n    <div class=\"round-tag\" id=\"roundTag\">第 1 轮</div>\n    <div class=\"stage\" id=\"stage\">\n      <div class=\"table-ring\"></div>\n      <div class=\"glow\"></div>\n      <div class=\"bottle-wrap\" id=\"bottleWrap\">\n        <svg class=\"bottle\" viewBox=\"0 0 40 120\" xmlns=\"http://www.w3.org/2000/svg\">\n          <defs>\n            <linearGradient id=\"bg\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"1\">\n              <stop offset=\"0\" stop-color=\"#ffe6b0\"/><stop offset=\"0.5\" stop-color=\"#ff9f6b\"/><stop offset=\"1\" stop-color=\"#c85a7a\"/>\n            </linearGradient>\n          </defs>\n          <path d=\"M16 6 h8 v18 q10 6 10 24 v56 q0 8 -8 8 h-12 q-8 0 -8 -8 v-56 q0 -18 10 -24 z\" fill=\"url(#bg)\"/>\n          <rect x=\"15\" y=\"2\" width=\"10\" height=\"8\" rx=\"3\" fill=\"#e9c98a\"/>\n          <ellipse cx=\"14\" cy=\"60\" rx=\"3\" ry=\"14\" fill=\"rgba(255,255,255,.45)\"/>\n        </svg>\n      </div>\n      <!-- 座位由 JS 注入 -->\n    </div>\n\n    <div class=\"panel\" id=\"panel\"></div>\n    <div class=\"history hidden\" id=\"historyWrap\">\n      <div class=\"h-title\">今晚的回合</div>\n      <div id=\"historyList\"></div>\n    </div>\n  </section>\n\n  <!-- 结局 -->\n  <section id=\"screen-end\" class=\"hidden\">\n    <h2 class=\"title\">夜色散场</h2>\n    <div class=\"recap\" id=\"recap\"></div>\n    <div class=\"memo\" id=\"memoNote\"></div>\n    <div class=\"end-actions\">\n      <button class=\"btn primary\" id=\"againBtn\">再来一局</button>\n      <button class=\"btn ghost\" id=\"exitBtn\">离开</button>\n    </div>\n  </section>\n\n</div>\n\n<script>\n(function(){\n  \"use strict\";\n\n  /* ============ 宿主 API 适配（带本地回退，方便单独预览） ============ */\n  const HOST = window.AiPhoneGame || null;\n  const hasHost = !!HOST;\n  const has = (k)=> hasHost && typeof HOST[k] === \"function\";\n\n  const API = {\n    async listCharacters(){\n      if(has(\"listAvailableCharacters\")) return await HOST.listAvailableCharacters();\n      return [\n        {id:\"demo1\",name:\"沈砚清\",subtitle:\"清冷温柔的旧识\"},\n        {id:\"demo2\",name:\"陈未明\",subtitle:\"爱拱火的主持人\"},\n        {id:\"demo3\",name:\"贺知真\",subtitle:\"嘴硬心软\"},\n        {id:\"demo4\",name:\"林晚\",subtitle:\"安静的观察者\"}\n      ];\n    },\n    async player(){\n      if(has(\"getPlayerProfile\")){ try{ const p=await HOST.getPlayerProfile(); if(p&&p.name) return p; }catch(e){} }\n      return {name:\"你\"};\n    },\n    async lightPkg(id){\n      if(has(\"getRoleLightPackage\")){ try{ return await HOST.getRoleLightPackage(id); }catch(e){} }\n      return {messages:[]};\n    },\n    async llm(opts){\n      if(has(\"callLLM\")) return await HOST.callLLM(opts);\n      await wait(700); return {content:\"（本地预览）这种问题嘛……我可不会轻易告诉你哦。\"};\n    },\n    async globalLLM(opts){\n      if(has(\"callGlobalLLM\")) return await HOST.callGlobalLLM(opts);\n      await wait(600);\n      const demo = [\"说出此刻你最想对在场某个人讲、却一直没说的一句话。\",\n        \"模仿在座一个人最有标志性的小动作，让大家猜是谁。\",\n        \"讲一件你从没跟任何人提过的小秘密。\",\n        \"对你右手边的人真诚地说一句赞美。\"];\n      return {content: demo[Math.floor(Math.random()*demo.length)]};\n    },\n    async save(d){ if(has(\"saveGame\")){ try{ return await HOST.saveGame(d); }catch(e){} } },\n    async load(){ if(has(\"loadGame\")){ try{ return await HOST.loadGame(); }catch(e){} } return null; },\n    async record(d){ if(has(\"recordGameEvent\")){ try{ return await HOST.recordGameEvent(d); }catch(e){} } else { console.log(\"[recordGameEvent]\",d); } },\n    async setTitleBar(d){ if(has(\"setTitleBar\")){ try{ return await HOST.setTitleBar(d); }catch(e){} } },\n    async close(){ if(has(\"closeGame\")){ try{ return await HOST.closeGame(); }catch(e){} } }\n  };\n\n  const wait = (ms)=> new Promise(r=>setTimeout(r,ms));\n  const $ = (id)=> document.getElementById(id);\n  const esc = (s)=> String(s==null?\"\":s).replace(/[&<>]/g, c=>({\"&\":\"&amp;\",\"<\":\"&lt;\",\">\":\"&gt;\"}[c]));\n\n  /* ============ 全局状态 ============ */\n  const S = {\n    all: [],\n    chosen: [],            // [{id,name,avatar,subtitle}]\n    player: {name:\"你\"},\n    seats: [],             // [{type:'me'|'char', id, name, avatar, angle}]\n    pkgCache: {},\n    round: 0,\n    log: [],               // {targetName,type,prompt,answer,reactorName,reaction}\n    busy: false,\n    recorded: false,\n    lastTargetIdx: -1\n  };\n\n  /* ============ 初始化 ============ */\n  async function init(){\n    API.setTitleBar({\n      material:\"glass\",\n      buttonBackground:\"rgba(255,255,255,.08)\",\n      buttonColor:\"#ffd9a0\",\n      buttonBorderColor:\"rgba(255,255,255,.16)\",\n      buttonRadius:\"999px\",\n      buttonShadow:\"0 8px 20px rgba(0,0,0,.25)\",\n      iconOpacity:1\n    });\n\n    S.player = await API.player();\n    S.all = await API.listCharacters() || [];\n    renderCharList();\n\n    $(\"startBtn\").addEventListener(\"click\", startGame);\n    $(\"againBtn\").addEventListener(\"click\", ()=>{ resetForReplay(); });\n    $(\"exitBtn\").addEventListener(\"click\", ()=> API.close());\n  }\n\n  /* ============ 选人页 ============ */\n  function renderCharList(){\n    const wrap = $(\"charList\");\n    wrap.innerHTML = \"\";\n    if(!S.all.length){\n      wrap.innerHTML = '<div class=\"pick-hint\">这台小手机里还没有可邀请的角色～</div>';\n      return;\n    }\n    S.all.forEach(c=>{\n      const el = document.createElement(\"div\");\n      el.className = \"char-card\";\n      el.dataset.id = c.id;\n      el.innerHTML = `\n        <div class=\"avatar\">${c.avatar?`<img src=\"${esc(c.avatar)}\" onerror=\"this.remove()\"/>`:\"\"}${initial(c.name)}</div>\n        <div class=\"char-meta\">\n          <div class=\"nm\">${esc(c.name)}</div>\n          ${c.subtitle?`<div class=\"st\">${esc(c.subtitle)}</div>`:\"\"}\n        </div>\n        <div class=\"check\">✓</div>`;\n      el.addEventListener(\"click\", ()=> togglePick(c, el));\n      wrap.appendChild(el);\n    });\n  }\n\n  function initial(name){ const n=(name||\"?\").trim(); return esc(n.charAt(0)||\"?\"); }\n\n  function togglePick(c, el){\n    const i = S.chosen.findIndex(x=>x.id===c.id);\n    if(i>=0){ S.chosen.splice(i,1); el.classList.remove(\"sel\"); }\n    else{\n      if(S.chosen.length>=3){ flashHint(\"最多选 3 个人哦\"); return; }\n      S.chosen.push(c); el.classList.add(\"sel\");\n    }\n    const n = S.chosen.length;\n    $(\"pickHint\").textContent = n? `已选 ${n} 人 · ${\"●\".repeat(n)}${\"○\".repeat(3-n)}` : \"挑 3 个人，和你一起围坐这一晚\";\n    $(\"startBtn\").disabled = n<1;\n    $(\"startBtn\").textContent = n? `开始游戏（${n+1} 人入座）` : \"开始游戏\";\n  }\n\n  let hintTimer;\n  function flashHint(t){\n    const h=$(\"pickHint\"); const old=h.textContent; h.textContent=t;\n    clearTimeout(hintTimer); hintTimer=setTimeout(()=>{ const n=S.chosen.length; h.textContent = n? `已选 ${n} 人 · ${\"●\".repeat(n)}${\"○\".repeat(3-n)}`:old; },1400);\n  }\n\n  /* ============ 开始 ============ */\n  function startGame(){\n    buildSeats();\n    show(\"screen-table\");\n    renderSeats();\n    S.round = 0;\n    S.log = [];\n    S.recorded = false;\n    S.lastTargetIdx = -1;\n    renderIdle();\n    persist();\n  }\n\n  function buildSeats(){\n    const total = 1 + S.chosen.length;\n    S.seats = [];\n    // 玩家固定在底部(180°)，其余等分\n    for(let i=0;i<total;i++){\n      const angle = (180 + i*(360/total)) % 360;\n      if(i===0) S.seats.push({type:\"me\", id:\"__me__\", name:S.player.name, avatar:null, angle});\n      else{\n        const c = S.chosen[i-1];\n        S.seats.push({type:\"char\", id:c.id, name:c.name, avatar:c.avatar, angle});\n      }\n    }\n  }\n\n  function renderSeats(){\n    document.querySelectorAll(\".seat\").forEach(n=>n.remove());\n    const stage = $(\"stage\");\n    const size = stage.clientWidth;\n    const R = size*0.40, cx=size/2, cy=size/2;\n    S.seats.forEach((s,idx)=>{\n      const rad = s.angle*Math.PI/180;\n      const x = cx + R*Math.sin(rad);\n      const y = cy - R*Math.cos(rad);\n      const el=document.createElement(\"div\");\n      el.className=\"seat\"+(s.type===\"me\"?\" me\":\"\");\n      el.dataset.idx=idx;\n      el.style.left=x+\"px\"; el.style.top=y+\"px\";\n      el.innerHTML=`<div class=\"avatar\">${s.avatar?`<img src=\"${esc(s.avatar)}\" onerror=\"this.remove()\"/>`:\"\"}${initial(s.name)}</div>\n        <div class=\"nm\">${s.type===\"me\"?\"你\":esc(s.name)}</div>`;\n      stage.appendChild(el);\n    });\n  }\n\n  /* ============ 回合：待转 ============ */\n  function renderIdle(){\n    clearActive();\n    $(\"roundTag\").textContent = S.round? `第 ${S.round} 轮 · 已结束 ${S.log.length} 个回合` : \"围坐就绪\";\n    $(\"panel\").innerHTML = `\n      <div class=\"card fade\" style=\"text-align:center\">\n        <div class=\"q\" style=\"font-size:16px;color:var(--muted)\">${S.round?\"转动瓶子，看看命运指向谁\":\"转动瓶子，让这一晚开始吧\"}</div>\n      </div>\n      <div class=\"actions\">\n        <button class=\"btn primary\" id=\"spinBtn\">转瓶子</button>\n        ${S.log.length?'<button class=\"btn ghost\" id=\"endBtn\">结束今晚</button>':\"\"}\n      </div>`;\n    $(\"spinBtn\").addEventListener(\"click\", spin);\n    const eb=$(\"endBtn\"); if(eb) eb.addEventListener(\"click\", endGame);\n    renderHistory();\n  }\n\n  let curRotation = 0;\n  async function spin(){\n    if(S.busy) return; S.busy=true;\n    $(\"spinBtn\").disabled=true;\n    clearActive();\n    S.round++;\n    $(\"roundTag\").textContent = `第 ${S.round} 轮`;\n\n    // 选目标（避免连续指同一人）\n    let idx;\n    do{ idx = Math.floor(Math.random()*S.seats.length); }\n    while(S.seats.length>1 && idx===S.lastTargetIdx);\n    S.lastTargetIdx = idx;\n    const target = S.seats[idx];\n\n    // 旋转到目标角度\n    const A = target.angle;\n    const cur = ((curRotation % 360)+360)%360;\n    const delta = ((A - cur)+360)%360;\n    curRotation += (3+Math.floor(Math.random()*3))*360 + delta;\n    $(\"bottleWrap\").style.transform = `translate(-50%,-50%) rotate(${curRotation}deg)`;\n\n    await wait(2950);\n    markActive(idx);\n    await beginTurn(target);\n    S.busy=false;\n  }\n\n  function markActive(idx){\n    clearActive();\n    const el=document.querySelector(`.seat[data-idx=\"${idx}\"]`);\n    if(el) el.classList.add(\"active\");\n  }\n  function clearActive(){ document.querySelectorAll(\".seat.active\").forEach(n=>n.classList.remove(\"active\")); }\n\n  /* ============ 一个回合 ============ */\n  async function beginTurn(target){\n    if(target.type===\"me\"){\n      renderChoose(target);                 // 玩家自己选真心话/大冒险\n    }else{\n      const type = Math.random()<0.5 ? \"truth\" : \"dare\";\n      renderChoose(target, type);           // AI 自动选，展示后继续\n      await wait(900);\n      await runPrompt(target, type);\n    }\n  }\n\n  function renderChoose(target, autoType){\n    const isMe = target.type===\"me\";\n    $(\"panel\").innerHTML = `\n      <div class=\"card fade\">\n        <div class=\"who\">轮到 ${isMe?\"你\":esc(target.name)}</div>\n        ${isMe\n          ? `<div class=\"q\" style=\"font-size:16px\">选一个吧——</div>\n             <div class=\"choose-row\" style=\"margin-top:14px\">\n               <button class=\"btn\" id=\"chTruth\">真心话</button>\n               <button class=\"btn\" id=\"chDare\">大冒险</button>\n             </div>`\n          : `<div class=\"q\" style=\"font-size:16px;color:var(--muted)\">${esc(target.name)} 选择了\n               <b style=\"color:${autoType===\"truth\"?\"var(--violet)\":\"var(--amber)\"}\">${autoType===\"truth\"?\"真心话\":\"大冒险\"}</b>…</div>`}\n      </div>`;\n    if(isMe){\n      $(\"chTruth\").addEventListener(\"click\", ()=> runPrompt(target,\"truth\"));\n      $(\"chDare\").addEventListener(\"click\", ()=> runPrompt(target,\"dare\"));\n    }\n  }\n\n  async function runPrompt(target, type){\n    const isMe = target.type===\"me\";\n    const typeLabel = type===\"truth\"?\"真心话\":\"大冒险\";\n    // 出题（主持人 / 通用模型）\n    $(\"panel\").innerHTML = `\n      <div class=\"card fade\">\n        <span class=\"typebadge ${type}\">${typeLabel}</span>\n        <div class=\"loading\"><span>主持人正在出题</span><span class=\"dots\"><i></i><i></i><i></i></span></div>\n      </div>`;\n\n    const names = S.seats.map(s=> s.type===\"me\"? S.player.name : s.name).join(\"、\");\n    let prompt = \"\";\n    try{\n      const r = await API.globalLLM({\n        messages:[\n          {role:\"system\",content:`你是一场深夜朋友聚会上\"真心话大冒险\"的主持人，只负责出题。语气俏皮、温暖、带点暧昧的小心机。根据要求生成一个${type===\"truth\"?\"【真心话问题】\":\"【大冒险任务】\"}。要求：贴合在场众人之间的关系，能引出真实情绪或有趣互动；只输出题目本身一句话，不要解释、不要引号、不超过40字；保持轻松友好，避免露骨、冒犯或危险内容。`},\n          {role:\"user\",content:`现在轮到「${isMe?S.player.name:target.name}」。在场的人有：${names}。请为${isMe?S.player.name:target.name}出一个${typeLabel}。`}\n        ]\n      });\n      prompt = (r && r.content || \"\").trim();\n    }catch(e){ prompt=\"\"; }\n    if(!prompt) prompt = type===\"truth\" ? \"说出此刻你最不想被人看穿的一个念头。\" : \"用一句话向在座某个人表白，可以是认真的，也可以是玩笑。\";\n\n    // 渲染题面 + 作答\n    const t = S.log.length; // 用于占位\n    $(\"panel\").innerHTML = `\n      <div class=\"card fade\">\n        <span class=\"typebadge ${type}\">${typeLabel}</span>\n        <div class=\"who\">出给 ${isMe?\"你\":esc(target.name)}</div>\n        <div class=\"q\">${esc(prompt)}</div>\n      </div>\n      <div id=\"answerArea\"></div>\n      <div class=\"actions\" id=\"turnActions\"></div>`;\n\n    if(isMe){\n      renderPlayerAnswer(target, type, prompt);\n    }else{\n      await renderCharAnswer(target, type, prompt);\n    }\n  }\n\n  function renderPlayerAnswer(target, type, prompt){\n    const area=$(\"answerArea\");\n    if(type===\"truth\"){\n      area.innerHTML = `<div class=\"answer-box fade\">\n        <textarea id=\"ans\" placeholder=\"说点真的……\"></textarea>\n      </div>`;\n      $(\"turnActions\").innerHTML = `<button class=\"btn primary\" id=\"submitAns\">说完了</button>`;\n      $(\"submitAns\").addEventListener(\"click\", async ()=>{\n        const v=($(\"ans\").value||\"\").trim();\n        await finishTurn(target,type,prompt, v || \"（沉默了一会儿，没说出口）\");\n      });\n    }else{\n      area.innerHTML = `<div class=\"answer-box fade\">\n        <div class=\"card\" style=\"background:rgba(0,0,0,.2)\">\n          <div class=\"q\" style=\"font-size:14px;color:var(--muted)\">完成它，然后告诉大家结果～</div>\n        </div>\n        <textarea id=\"ans\" placeholder=\"（可选）写下你做了什么 / 留空也行\"></textarea>\n      </div>`;\n      $(\"turnActions\").innerHTML = `<button class=\"btn primary\" id=\"doneDare\">完成挑战</button>`;\n      $(\"doneDare\").addEventListener(\"click\", async ()=>{\n        const v=($(\"ans\").value||\"\").trim();\n        await finishTurn(target,type,prompt, v || \"（笑着完成了这个大冒险）\");\n      });\n    }\n  }\n\n  async function renderCharAnswer(target, type, prompt){\n    const area=$(\"answerArea\");\n    area.innerHTML = `<div class=\"bubble fade\">\n      <div class=\"avatar\">${target.avatar?`<img src=\"${esc(target.avatar)}\" onerror=\"this.remove()\"/>`:\"\"}${initial(target.name)}</div>\n      <div class=\"body\"><div class=\"nm\">${esc(target.name)}</div>\n      <div class=\"loading\"><span class=\"dots\"><i></i><i></i><i></i></span></div></div>\n    </div>`;\n\n    const answer = await charSpeak(target, type, prompt);\n    area.querySelector(\".body\").innerHTML =\n      `<div class=\"nm\">${esc(target.name)}</div><div class=\"txt\">${esc(answer)}</div>`;\n\n    // 一个其他角色起哄/反应（更有聚会感）\n    const reactor = pickReactor(target);\n    let reaction = \"\", reactorName = \"\";\n    if(reactor){\n      reactorName = reactor.name;\n      const rb=document.createElement(\"div\");\n      rb.className=\"bubble react fade\"; rb.style.marginTop=\"10px\";\n      rb.innerHTML=`<div class=\"avatar\">${reactor.avatar?`<img src=\"${esc(reactor.avatar)}\" onerror=\"this.remove()\"/>`:\"\"}${initial(reactor.name)}</div>\n        <div class=\"body\"><div class=\"nm\">${esc(reactor.name)}</div>\n        <div class=\"loading\"><span class=\"dots\"><i></i><i></i><i></i></span></div></div>`;\n      area.appendChild(rb);\n      reaction = await charReact(reactor, target, type, prompt, answer);\n      rb.querySelector(\".body\").innerHTML=`<div class=\"nm\">${esc(reactor.name)}</div><div class=\"txt\">${esc(reaction)}</div>`;\n    }\n\n    $(\"turnActions\").innerHTML = `<button class=\"btn primary\" id=\"nextTurn\">下一轮</button>\n      <button class=\"btn ghost\" id=\"endNow\">结束今晚</button>`;\n    $(\"nextTurn\").addEventListener(\"click\", ()=> commit(target,type,prompt,answer,reactorName,reaction));\n    $(\"endNow\").addEventListener(\"click\", ()=>{ commitSilently(target,type,prompt,answer,reactorName,reaction); endGame(); });\n  }\n\n  function pickReactor(target){\n    const others = S.seats.filter(s=> s.type===\"char\" && s.id!==target.id);\n    if(!others.length) return null;\n    if(Math.random()<0.35) return null; // 不是每次都有人接话\n    return others[Math.floor(Math.random()*others.length)];\n  }\n\n  async function getPkg(id){\n    if(S.pkgCache[id]) return S.pkgCache[id];\n    const p = await API.lightPkg(id); S.pkgCache[id]=p||{messages:[]}; return S.pkgCache[id];\n  }\n\n  async function charSpeak(target, type, prompt){\n    try{\n      const pkg = await getPkg(target.id);\n      const sys = type===\"truth\"\n        ? `你正在和${S.player.name}等人玩真心话大冒险，现在轮到你回答一个真心话问题。请完全以你自己的性格、语气和说话习惯，真诚地回应。只输出你说的话，30~80字，可带一点点动作神态，但不要写成旁白或剧本格式。`\n        : `你正在和${S.player.name}等人玩真心话大冒险，现在轮到你完成一个大冒险任务。请完全以你自己的性格和语气，第一人称描述你怎么完成它（可以有简短动作）。只输出你的内容，30~80字，不要旁白格式。`;\n      const r = await API.llm({\n        characterId: target.id,\n        messages:[\n          ...(pkg.messages||[]),\n          {role:\"system\",content:sys},\n          {role:\"user\",content:`${type===\"truth\"?\"真心话问题\":\"大冒险任务\"}：${prompt}`}\n        ]\n      });\n      const txt=(r&&r.content||\"\").trim();\n      return txt || fallbackSpeak(type);\n    }catch(e){ return fallbackSpeak(type); }\n  }\n  function fallbackSpeak(type){\n    return type===\"truth\" ? \"……让我想想该怎么说。这种事，本来是不打算告诉别人的。\" : \"好吧，既然抽到了，我就做给你们看——别笑。\";\n  }\n\n  async function charReact(reactor, target, type, prompt, answer){\n    try{\n      const pkg = await getPkg(reactor.id);\n      const r = await API.llm({\n        characterId: reactor.id,\n        messages:[\n          ...(pkg.messages||[]),\n          {role:\"system\",content:`你正在旁观${S.player.name}等人玩真心话大冒险。刚才${target.name}${type===\"truth\"?\"回答了一个真心话\":\"完成了一个大冒险\"}。请以你自己的性格，给一句简短的现场反应（起哄、调侃、感慨或追问都行）。只输出你说的话，不超过30字。`},\n          {role:\"user\",content:`${target.name}的内容是：「${answer}」。`}\n        ]\n      });\n      const txt=(r&&r.content||\"\").trim();\n      return txt || \"哦——这个回答有意思。\";\n    }catch(e){ return \"哦——这个回答有意思。\"; }\n  }\n\n  /* ============ 收尾一个回合 ============ */\n  async function finishTurn(target,type,prompt,answer){\n    // 玩家作答后，也让一个角色反应\n    const area=$(\"answerArea\");\n    const reactor = pickReactor(target);\n    let reaction=\"\", reactorName=\"\";\n    if(reactor){\n      reactorName=reactor.name;\n      const rb=document.createElement(\"div\");\n      rb.className=\"bubble react fade\"; rb.style.marginTop=\"10px\";\n      rb.innerHTML=`<div class=\"avatar\">${reactor.avatar?`<img src=\"${esc(reactor.avatar)}\" onerror=\"this.remove()\"/>`:\"\"}${initial(reactor.name)}</div>\n        <div class=\"body\"><div class=\"nm\">${esc(reactor.name)}</div>\n        <div class=\"loading\"><span class=\"dots\"><i></i><i></i><i></i></span></div></div>`;\n      area.appendChild(rb);\n      $(\"turnActions\").innerHTML=\"\";\n      reaction = await charReact(reactor, {name:S.player.name}, type, prompt, answer);\n      rb.querySelector(\".body\").innerHTML=`<div class=\"nm\">${esc(reactor.name)}</div><div class=\"txt\">${esc(reaction)}</div>`;\n    }\n    $(\"turnActions\").innerHTML = `<button class=\"btn primary\" id=\"nextTurn\">下一轮</button>\n      <button class=\"btn ghost\" id=\"endNow\">结束今晚</button>`;\n    $(\"nextTurn\").addEventListener(\"click\", ()=> commit(target,type,prompt,answer,reactorName,reaction));\n    $(\"endNow\").addEventListener(\"click\", ()=>{ commitSilently(target,type,prompt,answer,reactorName,reaction); endGame(); });\n  }\n\n  function commit(target,type,prompt,answer,reactorName,reaction){\n    commitSilently(target,type,prompt,answer,reactorName,reaction);\n    renderIdle();\n  }\n  function commitSilently(target,type,prompt,answer,reactorName,reaction){\n    S.log.push({\n      targetName: target.type===\"me\"? S.player.name : target.name,\n      isPlayer: target.type===\"me\",\n      type, prompt, answer,\n      reactorName, reaction\n    });\n    persist();\n  }\n\n  /* ============ 历史 ============ */\n  function renderHistory(){\n    if(!S.log.length){ $(\"historyWrap\").classList.add(\"hidden\"); return; }\n    $(\"historyWrap\").classList.remove(\"hidden\");\n    const list=$(\"historyList\");\n    list.innerHTML = S.log.slice(-4).map(e=>{\n      const tl = e.type===\"truth\"?\"真心话\":\"大冒险\";\n      return `<div class=\"h-item\"><b>${esc(e.targetName)}</b> · ${tl}：${esc(trim(e.prompt,18))}</div>`;\n    }).join(\"\");\n  }\n  function trim(s,n){ s=String(s||\"\"); return s.length>n? s.slice(0,n)+\"…\" : s; }\n\n  /* ============ 存档 ============ */\n  function persist(){\n    API.save({\n      chosen:S.chosen, player:S.player, seats:S.seats,\n      round:S.round, log:S.log, recorded:S.recorded, v:1\n    });\n  }\n\n  /* ============ 结束：写回记忆 ============ */\n  async function endGame(){\n    if(S.busy) return;\n    show(\"screen-end\");\n    renderRecap();\n    if(!S.recorded){\n      S.recorded=true;\n      await writeMemory();\n    }\n  }\n\n  function renderRecap(){\n    const recap=$(\"recap\");\n    if(!S.log.length){\n      recap.innerHTML=`<div class=\"line\">这一晚，瓶子还没来得及转起来呢。</div>`;\n      $(\"memoNote\").textContent=\"\";\n      return;\n    }\n    recap.innerHTML = S.log.map(e=>{\n      const tl=e.type===\"truth\"?\"真心话\":\"大冒险\";\n      return `<div class=\"line\"><b>${esc(e.targetName)}</b> 的${tl}：${esc(trim(e.prompt,40))}<br>\n        <span style=\"color:var(--faint)\">「${esc(trim(e.answer,46))}」</span>\n        ${e.reactorName?`<br><span style=\"color:var(--violet);font-size:13px\">${esc(e.reactorName)}：${esc(trim(e.reaction,30))}</span>`:\"\"}</div>`;\n    }).join(\"\");\n  }\n\n  async function writeMemory(){\n    const ids = S.chosen.map(c=>c.id);\n    if(!ids.length){ $(\"memoNote\").textContent=\"\"; return; }\n    const summary = buildSummary();\n    $(\"memoNote\").textContent = \"正在把今晚写进记忆…\";\n    await API.record({ characterIds: ids, summary });\n    $(\"memoNote\").textContent = `已把今晚写进 ${S.chosen.map(c=>c.name).join(\"、\")} 的记忆`;\n    persist();\n  }\n\n  // 用真实名字构造本局总结（不使用\"玩家/用户/角色\"等泛称）\n  function buildSummary(){\n    const names = [S.player.name, ...S.chosen.map(c=>c.name)].join(\"、\");\n    if(!S.log.length){\n      return `${names}围坐在一起，原本要玩真心话大冒险，但还没正式开始这一晚就散了。`;\n    }\n    // 取最多 3 个亮点：优先玩家参与的、以及真心话坦白\n    const sorted = [...S.log].sort((a,b)=>{\n      const sa=(a.isPlayer?2:0)+(a.type===\"truth\"?1:0);\n      const sb=(b.isPlayer?2:0)+(b.type===\"truth\"?1:0);\n      return sb-sa;\n    });\n    const picks = sorted.slice(0,3);\n    const highlights = picks.map(e=>{\n      const a = trim(e.answer, 30);\n      if(e.type===\"truth\") return `${e.targetName}在真心话里说「${a}」`;\n      return `${e.targetName}做了一个大冒险，${a}`;\n    }).join(\"；\");\n    let s = `今晚${names}一起玩了真心话大冒险，一共 ${S.log.length} 个回合。${highlights}。`;\n    // 收一句温度\n    const me = S.log.find(e=>e.isPlayer);\n    if(me) s += `这一晚，${S.player.name}也露出了平时不太说的那一面。`;\n    if(s.length>200) s=s.slice(0,198)+\"。\";\n    return s;\n  }\n\n  /* ============ 再来一局 ============ */\n  function resetForReplay(){\n    S.round=0; S.log=[]; S.recorded=false; S.lastTargetIdx=-1; curRotation=0;\n    $(\"bottleWrap\").style.transition=\"none\";\n    $(\"bottleWrap\").style.transform=\"translate(-50%,-50%) rotate(0deg)\";\n    requestAnimationFrame(()=>{ $(\"bottleWrap\").style.transition=\"\"; });\n    show(\"screen-table\");\n    renderSeats();\n    renderIdle();\n    persist();\n  }\n\n  /* ============ 屏幕切换 ============ */\n  function show(id){\n    [\"screen-select\",\"screen-table\",\"screen-end\"].forEach(s=>{\n      $(s).classList.toggle(\"hidden\", s!==id);\n    });\n  }\n\n  window.addEventListener(\"resize\", ()=>{ if(!$(\"screen-table\").classList.contains(\"hidden\")) renderSeats(); });\n\n  init();\n})();\n</script>\n</body>\n</html>";
+  <div id="stage">
+    <canvas id="cv"></canvas>
+    <button id="soundBtn" type="button" aria-label="音效开关" title="音效开关">
+      <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2"
+           stroke-linecap="round" stroke-linejoin="round">
+        <polygon points="4,9 3,9 3,15 4,15 8,15 12,19 12,5 8,9" fill="currentColor" stroke="none"></polygon>
+        <path class="wave1" d="M15.2 8.6a4.8 4.8 0 0 1 0 6.8"></path>
+        <path class="wave2" d="M17.9 6a8.4 8.4 0 0 1 0 12"></path>
+        <path class="slash" d="M16 9l5 6M21 9l-5 6"></path>
+      </svg>
+    </button>
+    <button id="autoBtn" type="button" aria-label="自动瞄准开关" title="自动瞄准">
+      <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2"
+           stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="7.2"></circle>
+        <circle cx="12" cy="12" r="1.4" fill="currentColor" stroke="none"></circle>
+        <path d="M12 2.4v3.4M12 18.2v3.4M2.4 12h3.4M18.2 12h3.4"></path>
+      </svg>
+    </button>
+    <div id="autoBadge">AUTO AIM</div>
+    <div id="say"></div>
+    <div id="float"></div>
+    <div id="unlockToast"><div class="ut"><div class="udot" id="uDot"></div><div class="uc"><div class="uh">NEW OUTFIT</div><div class="un" id="uName"></div><div class="us" id="uSub"></div></div></div></div>
+  </div>
+
+  <div id="bottom">
+    <div id="powerWrap"><div id="powerBar"></div></div>
+    <button id="tapBtn">按住蓄力 · 松手起跳</button>
+    <div id="hint">跳到下一个方块正中央会有额外加分</div>
+  </div>
+
+  <div class="sheet" id="pick">
+    <h1>跳一跳 <span>对决</span></h1>
+    <div class="sub">选一个手机里的角色当对手，轮流跳同一排方块。跳空的人出局。</div>
+    <div class="lvRow" id="lvRow">
+      <button class="lv" data-lv="easy">简单</button>
+      <button class="lv on" data-lv="hard">困难</button>
+      <button class="lv" data-lv="hell">地狱</button>
+    </div>
+    <div class="lvDesc" id="lvDesc">正常速度，落点要准</div>
+    <div class="skinLabel"><span id="skinTitle">我的造型</span><b id="skinProgress">胜 0 场 · 最佳 0 分</b></div>
+    <div class="skinRow" id="skinRow"></div>
+    <div class="list" id="charList"></div>
+    <button class="btn" id="startBtn">开始对决</button>
+    <button class="btn ghost" id="soloBtn">自己练练手</button>
+    <div class="lockToast" id="lockToast"></div>
+  </div>
+
+  <div class="sheet hide" id="over">
+    <div class="scroll">
+      <h1 style="text-align:center" id="overTitle">本局结束</h1>
+      <div class="big" id="bigScore">0</div>
+      <div class="winner" id="winner">—</div>
+      <div class="rowbox">
+        <div class="cell"><i id="c1n">我</i><b id="c1v">0</b></div>
+        <div class="cell"><i id="c2n">对手</i><b id="c2v">0</b></div>
+      </div>
+      <div class="cmt" id="cmt">—</div>
+      <div class="bubbleWrap hide" id="bubbleWrap">
+        <div class="bubbleWho" id="bubbleWho">对手</div>
+        <div class="bubble" id="chatBubble"><span class="loader"></span>正在组织语言…</div>
+      </div>
+    </div>
+    <button class="btn" id="againBtn">再来一局</button>
+    <button class="btn ghost" id="backBtn">换对手</button>
+  </div>
+</div>
+<script>
+(function(){
+'use strict';
+const $ = (id) => document.getElementById(id);
+const cv = $('cv'), ctx = cv.getContext('2d');
+const stage = $('stage');
+const G = (typeof window !== 'undefined' && window.AiPhoneGame) ? window.AiPhoneGame : null;
+const el = {
+  scMe: $('scMe'), scFoe: $('scFoe'), nmMe: $('nmMe'), nmFoe: $('nmFoe'),
+  avMe: $('avMe'), avFoe: $('avFoe'), sideMe: $('sideMe'), sideFoe: $('sideFoe'),
+  tip: $('turnTip'), bar: $('powerBar'), tap: $('tapBtn'), hint: $('hint'),
+  list: $('charList'), pick: $('pick'), over: $('over'),
+  say: $('say'), float: $('float'),
+  startBtn: $('startBtn'), soloBtn: $('soloBtn'),
+  againBtn: $('againBtn'), backBtn: $('backBtn'),
+  bigScore: $('bigScore'), winner: $('winner'), cmt: $('cmt'),
+  overTitle: $('overTitle'),
+  c1n: $('c1n'), c1v: $('c1v'), c2n: $('c2n'), c2v: $('c2v')
+};
+
+const clamp = (v, a, b) => v < a ? a : (v > b ? b : v);
+const lerp = (a, b, t) => a + (b - a) * t;
+const rand = (a, b) => a + Math.random() * (b - a);
+
+let W = 360, H = 520, DPR = 1, groundY = 360;
+
+function resize() {
+  const r = stage.getBoundingClientRect();
+  W = Math.max(240, Math.round(r.width || 360));
+  H = Math.max(240, Math.round(r.height || 520));
+  DPR = Math.min(window.devicePixelRatio || 1, 2.5);
+  cv.width = Math.round(W * DPR);
+  cv.height = Math.round(H * DPR);
+  cv.style.width = W + 'px';
+  cv.style.height = H + 'px';
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  groundY = Math.round(H * 0.70);
+}
+
+const S = {
+  phase: 'pick',
+  me:  { key:'me',  name:'我',  avatar:'', idx:0, x:0, jumpY:0, lives:3, score:0, skill:1,   squash:0, alpha:1, alive:true },
+  foe: { key:'foe', name:'对手', avatar:'', idx:0, x:0, jumpY:0, lives:3, score:0, skill:0.8, squash:0, alpha:1, alive:true },
+  turn: 'me',
+  blocks: [],
+  cam: 0, camTarget: 0,
+  chargeStart: 0, chargeMs: 1050, aiHold: null, jump: null, falling: null,
+  playerName: '我', charObj: null, pkg: null,
+  wins: 0, best: 0, seenOutfits: {}, autopilot: false, autoLeft: 3, devMode: false,
+  ended: false, bank: null, bankBusy: false
+};
+
+const MAX_DIST = 270, MIN_DIST = 44;
+const AUTO_PER_MATCH = 3;
+
+const LEVELS = {
+  easy: { name: '简单', w: [58, 88], gap: [44, 64], grow: 1.2, chargeMs: 1250, aiMul: 0.78, missBase: 0.10, desc: '方块宽、间距近，先找手感' },
+  hard: { name: '困难', w: [46, 70], gap: [56, 84], grow: 2.4, chargeMs: 1050, aiMul: 1.00, missBase: 0.15, desc: '正常速度，落点要准' },
+  hell: { name: '地狱', w: [34, 52], gap: [70, 102], grow: 3.0, chargeMs: 900, aiMul: 1.14, missBase: 0.20, desc: '窄块远距，对手也会失误' }
+};
+let LV = LEVELS.hard;
+
+const OUTFITS = [
+  { id: 'cyan',   name: '霓虹青', body: '#6ee7ff', glow: '#6ee7ff', hat: 'none',  scarf: null,      aura: 0.60, unlock: null },
+  { id: 'jade',   name: '薄荷绿', body: '#8ef2c0', glow: '#8ef2c0', hat: 'cap',   scarf: null,      aura: 0.45, unlock: null },
+  { id: 'amber',  name: '焦糖橙', body: '#ffc46b', glow: '#ffc46b', hat: 'none',  scarf: '#ff8a5c', aura: 0.45, unlock: null },
+  { id: 'sakura', name: '樱花粉', body: '#ff9ec4', glow: '#ff9ec4', hat: 'bow',   scarf: null,      aura: 0.50, unlock: { kind: 'wins', need: 1 } },
+  { id: 'frost',  name: '霜雪白', body: '#e8f0ff', glow: '#cfe4ff', hat: 'cap',   scarf: '#8ea6ff', aura: 0.35, unlock: { kind: 'best', need: 12 } },
+  { id: 'violet', name: '星辉紫', body: '#a78bfa', glow: '#a78bfa', hat: 'crown', scarf: null,      aura: 0.70, unlock: { kind: 'wins', need: 3 } },
+  { id: 'ember',  name: '余烬红', body: '#ff7a7a', glow: '#ff5d5d', hat: 'tail',  scarf: null,      aura: 0.55, unlock: { kind: 'wins', need: 5 } },
+  { id: 'sky',    name: '云间白', body: '#cfe3ff', glow: '#a8c8ff', hat: 'wings', scarf: '#7fa8ff', aura: 0.50, unlock: { kind: 'best', need: 25 } },
+  { id: 'gold',   name: '流金', body: '#ffd479', glow: '#ffbe3d', hat: 'halo',  scarf: null,      aura: 0.85, unlock: { kind: 'best', need: 40 } },
+  { id: 'night',  name: '夜行黑', body: '#5b6480', glow: '#8fa0d8', hat: 'wings', scarf: '#3a4260', aura: 0.65, unlock: { kind: 'wins', need: 8 } },
+  { id: 'abyss',  name: '深渊', body: '#8b5cf6', glow: '#c084fc', hat: 'halo',  scarf: '#1e1b3a', aura: 0.90, unlock: { kind: 'wins', need: 12 } },
+  { id: 'prism',  name: '棱镜', body: '#7dfcd0', glow: '#9beaff', hat: 'tail',  scarf: '#a78bfa', aura: 0.95, unlock: { kind: 'best', need: 60 } },
+  { id: 'seraph', name: '炽天使', body: '#ffe9a8', glow: '#ffcf4d', hat: 'seraph',
+    scarf: null, aura: 1.00, unlock: { kind: 'best', need: 80 }, premium: true,
+    desc: '金色棋子加一对翅膀，起跳展翼滑翔' }
+];
+
+function isUnlocked(o) {
+  if (!o) return false;
+  if (S.devMode) return true;
+  if (!o.unlock) return true;
+  if (o.unlock.kind === 'wins') return (S.wins || 0) >= o.unlock.need;
+  if (o.unlock.kind === 'best') return (S.best || 0) >= o.unlock.need;
+  return true;
+}
+
+function unlockText(o) {
+  if (!o || !o.unlock) return '';
+  if (o.unlock.kind === 'wins') return '胜 ' + o.unlock.need + ' 局解锁';
+  if (o.unlock.kind === 'best') return '单局 ' + o.unlock.need + ' 分解锁';
+  return '';
+}
+
+S.outfit = OUTFITS[0];
+S.me.skin = OUTFITS[0];
+S.foe.skin = OUTFITS[1];
+
+function outfitById(id) {
+  for (let i = 0; i < OUTFITS.length; i++) if (OUTFITS[i].id === id) return OUTFITS[i];
+  return OUTFITS[0];
+}
+
+/* ================= 音效 ================= */
+let audioCtx = null;
+let soundOn = true;
+
+function renderSoundBtn() {
+  const b = $('soundBtn');
+  if (!b) return;
+  b.classList.toggle('muted', !soundOn);
+  b.classList.toggle('on', soundOn);
+  b.setAttribute('aria-label', soundOn ? '关闭音效' : '开启音效');
+}
+
+function renderAutoBtn() {
+  const b = $('autoBtn');
+  if (!b) return;
+  const on = !!S.autopilot && S.autoLeft > 0;
+  b.classList.toggle('on', on);
+  const badge = $('autoBadge');
+  if (badge) {
+    badge.classList.toggle('show', on);
+    badge.textContent = 'AUTO ×' + Math.max(0, S.autoLeft);
+  }
+  b.setAttribute('aria-label', on ? '关闭自动瞄准' : '开启自动瞄准');
+}
+
+function toggleAuto() {
+  if (S.autoLeft <= 0) {
+    el.hint.textContent = '本局 3 次已用完，下局恢复';
+    return;
+  }
+  S.autopilot = !S.autopilot;
+  renderAutoBtn();
+  if (S.autopilot) {
+    playTick();
+    el.hint.textContent = '自动瞄准已开启 · 本局还剩 ' + S.autoLeft + ' 次';
+  } else {
+    el.hint.textContent = '自动瞄准已关闭 · 还剩 ' + S.autoLeft + ' 次';
+  }
+}
+
+function toggleSound() {
+  soundOn = !soundOn;
+  renderSoundBtn();
+  if (soundOn) {
+    ensureAudio();
+    playTick();
+    el.hint.textContent = '音效已开启';
+  } else {
+    el.hint.textContent = '音效已静音';
+  }
+  saveSeenOutfits();
+}
+
+function ensureAudio() {
+  if (!soundOn) return null;
+  try {
+    if (!audioCtx) {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return null;
+      audioCtx = new AC();
+    }
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    return audioCtx;
+  } catch (e) { return null; }
+}
+
+function playDing() {
+  const ac = ensureAudio();
+  if (!ac) return;
+  const t0 = ac.currentTime + 0.01;
+  const master = ac.createGain();
+  master.gain.setValueAtTime(0.0001, t0);
+  master.gain.exponentialRampToValueAtTime(0.30, t0 + 0.014);
+  master.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.92);
+  master.connect(ac.destination);
+  [
+    { f: 1046.5, g: 0.55, d: 0.90 },
+    { f: 1568.0, g: 0.26, d: 0.62 },
+    { f: 2093.0, g: 0.11, d: 0.40 }
+  ].forEach(function (part) {
+    const osc = ac.createOscillator();
+    const gain = ac.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(part.f, t0);
+    gain.gain.setValueAtTime(part.g, t0);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t0 + part.d);
+    osc.connect(gain);
+    gain.connect(master);
+    osc.start(t0);
+    osc.stop(t0 + part.d + 0.02);
+  });
+}
+
+function playTick() {
+  const ac = ensureAudio();
+  if (!ac) return;
+  const t0 = ac.currentTime + 0.005;
+  const osc = ac.createOscillator();
+  const gain = ac.createGain();
+  osc.type = 'triangle';
+  osc.frequency.setValueAtTime(1318.5, t0);
+  gain.gain.setValueAtTime(0.0001, t0);
+  gain.gain.exponentialRampToValueAtTime(0.10, t0 + 0.008);
+  gain.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.22);
+  osc.connect(gain);
+  gain.connect(ac.destination);
+  osc.start(t0);
+  osc.stop(t0 + 0.24);
+}
+
+/* ================= 解锁弹窗 ================= */
+const unlockQueue = [];
+let unlockBusy = false;
+
+function showUnlockToast(o, done) {
+  const box = $('unlockToast');
+  if (!box) { if (done) done(); return; }
+  $('uDot').style.background = 'linear-gradient(180deg,' + o.body + ',' + o.glow + ')';
+  $('uDot').style.boxShadow = '0 0 14px ' + o.glow;
+  $('uName').textContent = o.name;
+  $('uSub').textContent = o.unlock
+    ? (o.unlock.kind === 'wins' ? '达成 ' + o.unlock.need + ' 场胜利' : '单局拿到 ' + o.unlock.need + ' 分')
+    : '已解锁';
+  box.classList.add('show');
+  playDing();
+  setTimeout(function () {
+    box.classList.remove('show');
+    setTimeout(function () { if (done) done(); }, 300);
+  }, 2000);
+}
+
+function queueUnlock(o) {
+  if (!o) return;
+  unlockQueue.push(o);
+  if (unlockBusy) return;
+  unlockBusy = true;
+  const next = function () {
+    const item = unlockQueue.shift();
+    if (!item) { unlockBusy = false; return; }
+    showUnlockToast(item, next);
+  };
+  next();
+}
+
+function refreshUnlocks() {
+  const fresh = [];
+  OUTFITS.forEach(function (o) {
+    if (isUnlocked(o) && !S.seenOutfits[o.id]) {
+      S.seenOutfits[o.id] = true;
+      if (o.unlock) fresh.push(o);
+    }
+  });
+  if (fresh.length > 0) {
+    saveSeenOutfits();
+    fresh.forEach(queueUnlock);
+  }
+  return fresh;
+}
+
+function saveSeenOutfits() {
+  if (!G) return;
+  try {
+    G.saveGame({
+      best: S.best, wins: S.wins, outfit: S.outfit.id,
+      seenOutfits: S.seenOutfits, sound: soundOn, autopilot: !!S.autopilot,
+      devMode: !!S.devMode, at: Date.now()
+    });
+  } catch (e) {}
+}
+
+function hash(str) {
+  let h = 2166136261;
+  str = String(str || '');
+  for (let i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = (h * 16777619) >>> 0; }
+  return h >>> 0;
+}
+
+const PERSONA_HINTS = [
+  { re: /冷|沉默|寡言|理性|军人|特工|杀手|淡漠|疏离|禁欲|克制/, ids: ['frost', 'night', 'abyss'] },
+  { re: /活泼|开朗|元气|热情|阳光|少女|少年|爱笑|可爱|欢脱|跳脱/, ids: ['sakura', 'amber', 'cyan'] },
+  { re: /温柔|治愈|安静|柔软|乖巧|体贴|母性|姐姐|包容/, ids: ['jade', 'sky', 'cyan'] },
+  { re: /强势|骄傲|女王|张扬|贵族|傲慢|霸气|皇帝|嚣张|自信/, ids: ['violet', 'gold', 'ember'] },
+  { re: /成熟|沉稳|年长|沧桑|老练|严谨|复古|内敛|学者/, ids: ['amber', 'night', 'jade'] },
+  { re: /神秘|诡异|邪|魔|妖|鬼|深渊|黑暗|疯|狂/, ids: ['abyss', 'violet', 'night'] }
+];
+
+function personaText() {
+  let txt = (S.charObj && S.charObj.subtitle ? S.charObj.subtitle : '') + ' ';
+  try {
+    if (S.pkg && S.pkg.character) txt += JSON.stringify(S.pkg.character);
+  } catch (e) {}
+  return txt;
+}
+
+function foeOutfit(mine) {
+  const txt = personaText();
+  let pool = null;
+  for (let i = 0; i < PERSONA_HINTS.length; i++) {
+    if (PERSONA_HINTS[i].re.test(txt)) { pool = PERSONA_HINTS[i].ids; break; }
+  }
+  if (!pool) {
+    const start = hash(S.foe.name || 'foe') % OUTFITS.length;
+    pool = [];
+    for (let i = 0; i < OUTFITS.length; i++) pool.push(OUTFITS[(start + i) % OUTFITS.length].id);
+  }
+  const mineId = mine ? mine.id : '';
+  for (let i = 0; i < pool.length; i++) {
+    if (pool[i] !== mineId) return outfitById(pool[i]);
+  }
+  return OUTFITS.find(function (o) { return o.id !== mineId; }) || OUTFITS[0];
+}
+
+/* ================= 方块 ================= */
+function buildBlocks() {
+  const arr = [];
+  const L = LV;
+  for (let i = 0; i < 70; i++) {
+    let x = 0;
+    const w = i === 0 ? 104 : Math.round(rand(L.w[0], L.w[1]));
+    if (i > 0) {
+      const gap = rand(L.gap[0], L.gap[1]) + Math.min(i * L.grow, 46);
+      x = arr[i - 1].x + arr[i - 1].w + Math.round(gap);
+    }
+    arr.push({ x: x, w: w, seed: Math.random() });
+  }
+  S.blocks = arr;
+}
+
+function blockAt(x) {
+  for (let i = 0; i < S.blocks.length; i++) {
+    const b = S.blocks[i];
+    if (x >= b.x - 2 && x <= b.x + b.w + 2) return i;
+  }
+  return -1;
+}
+
+function centerOf(i) {
+  const b = S.blocks[i];
+  return b ? b.x + b.w / 2 : 0;
+}
+
+function perfectPower(p) {
+  if (!S.blocks.length) return 0.5;
+  const target = centerOf(p.idx + 1);
+  const need = (target - p.x - MIN_DIST) / (MAX_DIST - MIN_DIST);
+  if (!isFinite(need)) return 0.5;
+  return clamp(need, 0.06, 1);
+}
+
+/* ================= HUD ================= */
+function hearts(n) { return n > 0 ? '♥'.repeat(n) : '✕'; }
+
+function updateHUD() {
+  el.nmMe.textContent = S.me.name + '  ' + hearts(S.me.lives);
+  el.nmFoe.textContent = hearts(S.foe.lives) + '  ' + S.foe.name;
+  el.scMe.textContent = S.me.score;
+  el.scFoe.textContent = S.foe.score;
+  const on = S.phase !== 'over' && S.phase !== 'pick';
+  el.sideMe.classList.toggle('on', on && S.turn === 'me');
+  el.sideFoe.classList.toggle('on', on && S.turn === 'foe');
+  if (S.phase === 'pick') {
+    el.tip.innerHTML = '选个对手，轮流跳';
+  } else if (S.phase === 'over') {
+    el.tip.textContent = '本局结束';
+  } else if (S.turn === 'me') {
+    el.tip.innerHTML = '轮到 <b>你</b> 了 · 按住蓄力';
+  } else {
+    el.tip.innerHTML = '<b>' + esc(S.foe.name) + '</b> 正在瞄准…';
+  }
+}
+
+function setBtns(enabled) {
+  el.tap.disabled = !enabled;
+  el.tap.textContent = enabled ? '按住蓄力 · 松手起跳' : (S.turn === 'foe' ? '对手的回合' : '请稍候…');
+}
+
+function esc(s) {
+  return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) {
+    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c];
+  });
+}
+
+function say(who, text, ms) {
+  el.say.innerHTML = (who ? '<span class="who">' + esc(who) + '</span>' : '') + esc(text);
+  el.say.classList.add('show');
+  clearTimeout(say._t);
+  say._t = setTimeout(function () { el.say.classList.remove('show'); }, ms || 2200);
+}
+
+function mark(text, sx, sy, cls) {
+  const d = document.createElement('div');
+  d.className = 'mark' + (cls ? ' ' + cls : '');
+  d.textContent = text;
+  d.style.left = sx + 'px';
+  d.style.top = sy + 'px';
+  el.float.appendChild(d);
+  setTimeout(function () { if (d.parentNode) d.parentNode.removeChild(d); }, 950);
+}
+
+function setAvatar(node, name, url) {
+  node.innerHTML = '';
+  if (url) {
+    const img = document.createElement('img');
+    img.src = url;
+    img.onerror = function () { node.textContent = (name || '?').slice(0, 1); };
+    node.appendChild(img);
+  } else {
+    node.textContent = (name || '?').slice(0, 1);
+  }
+}
+
+/* ================= 角色选择 ================= */
+let chars = [], selId = null;
+
+function renderChars() {
+  if (!chars.length) {
+    el.list.innerHTML = '<div class="empty">这台手机里还没读到角色。<br>可以先用下面的「自己练练手」，或先去创建一个角色。</div>';
+    el.startBtn.disabled = true;
+    return;
+  }
+  el.list.innerHTML = '';
+  chars.forEach(function (c) {
+    const card = document.createElement('div');
+    card.className = 'card' + (c.id === selId ? ' sel' : '');
+    const av = document.createElement('div');
+    av.className = 'av';
+    setAvatar(av, c.name, c.avatar);
+    const t = document.createElement('div');
+    t.className = 't';
+    t.innerHTML = '<b>' + esc(c.name) + '</b><i>' + esc(c.subtitle || '和你一起玩') + '</i>';
+    card.appendChild(av);
+    card.appendChild(t);
+    card.addEventListener('click', function () {
+      selId = (selId === c.id) ? null : c.id;
+      el.startBtn.disabled = !selId;
+      renderChars();
+    });
+    el.list.appendChild(card);
+  });
+  el.startBtn.disabled = !selId;
+}
+
+function showLockToast(text) {
+  const t = $('lockToast');
+  if (!t) return;
+  t.textContent = text;
+  t.classList.add('show');
+  clearTimeout(showLockToast._t);
+  showLockToast._t = setTimeout(function () { t.classList.remove('show'); }, 1800);
+}
+
+function renderSkins() {
+  const row = $('skinRow');
+  if (!row) return;
+  if (!isUnlocked(S.outfit)) {
+    S.outfit = OUTFITS[0];
+    S.me.skin = S.outfit;
+  }
+  const prog = $('skinProgress');
+  if (prog) {
+    prog.textContent = S.devMode
+      ? '全部造型可试'
+      : ('胜 ' + (S.wins || 0) + ' 场 · 最佳 ' + (S.best || 0) + ' 分');
+  }
+  const title = $('skinTitle');
+  if (title) title.classList.toggle('dev', !!S.devMode);
+
+  row.innerHTML = '';
+  OUTFITS.forEach(function (o) {
+    const on = o.id === S.outfit.id;
+    const unlocked = isUnlocked(o);
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'skin' + (on ? ' on' : '') + (unlocked ? '' : ' locked') + (o.premium ? ' premium' : '');
+    b.style.borderColor = on ? o.body : 'rgba(140,170,255,.18)';
+    if (o.premium && unlocked) {
+      const pv = document.createElement('span');
+      pv.className = 'pv';
+      pv.textContent = '限定';
+      b.appendChild(pv);
+    }
+    if (!unlocked) b.setAttribute('aria-disabled', 'true');
+
+    const dot = document.createElement('i');
+    dot.style.background = unlocked
+      ? 'linear-gradient(180deg,' + o.body + ',' + o.glow + ')'
+      : 'linear-gradient(180deg,#3a4160,#262c44)';
+    dot.style.boxShadow = unlocked ? '0 0 10px ' + o.glow : 'none';
+    b.appendChild(dot);
+
+    const label = document.createElement('span');
+    label.textContent = unlocked ? o.name : '🔒 ' + o.name;
+    b.appendChild(label);
+
+    if (!unlocked) {
+      const tip = document.createElement('em');
+      tip.textContent = unlockText(o);
+      b.appendChild(tip);
+      b.addEventListener('click', function (ev) {
+        ev.preventDefault();
+        ev.stopPropagation();
+        showLockToast('「' + o.name + '」还没解锁 · 需要' + unlockText(o));
+      });
+      row.appendChild(b);
+      return;
+    }
+
+    b.addEventListener('click', function () {
+      ensureAudio();
+      if (!isUnlocked(o)) {
+        showLockToast('「' + o.name + '」还没解锁 · 需要' + unlockText(o));
+        return;
+      }
+      S.outfit = o;
+      S.me.skin = o;
+      renderSkins();
+    });
+    row.appendChild(b);
+  });
+}
+
+async function initChars() {
+  if (!G) { renderChars(); return; }
+  try {
+    chars = (await G.listAvailableCharacters()) || [];
+  } catch (e) {
+    chars = [];
+  }
+  renderChars();
+}
+
+function skillOf(c, pkg) {
+  let txt = (c && c.subtitle ? c.subtitle : '') + ' ';
+  try {
+    if (pkg && pkg.character) txt += JSON.stringify(pkg.character);
+  } catch (e) {}
+  let s = 0.56 + (hash(c && (c.id || c.name)) % 29) / 100;
+  if (/敏捷|灵活|运动员|擅长运动|身手|肢体|年轻|少年|机灵|利落|敏锐|活泼|反应快/.test(txt)) s += 0.07;
+  if (/冷静|沉稳|精准|专注|自律|军人|特工|猎人|剑|射击/.test(txt)) s += 0.04;
+  if (/迟钝|笨|懒|懒散|腿脚|笨拙|慢半拍|粗心|冒失|毛躁/.test(txt)) s -= 0.08;
+  if (/年迈|老|体弱|病|伤|残疾|虚弱/.test(txt)) s -= 0.05;
+  return clamp(s, 0.46, 0.90);
+}
+
+function gauss() {
+  let u = 0, v = 0;
+  while (!u) u = Math.random();
+  while (!v) v = Math.random();
+  return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v) / 2.2;
+}
+
+function aiPower(f) {
+  const need = (centerOf(f.idx + 1) - f.x - MIN_DIST) / (MAX_DIST - MIN_DIST);
+  f.mood = clamp((f.mood || 0) * 0.72 + rand(-1, 1) * 0.55, -1, 1);
+  let acc = f.skill * LV.aiMul + f.mood * 0.06;
+  acc += Math.min(f.streak || 0, 5) * 0.005;
+  acc = clamp(acc, 0.30, 0.96);
+  let err = gauss() * (1 - acc) * 0.55;
+  const pMiss = clamp(LV.missBase * (1.45 - acc), 0.03, 0.32);
+  if (Math.random() < pMiss) {
+    err += (Math.random() < 0.5 ? -1 : 1) * rand(0.08, 0.22);
+  }
+  return clamp(need + err, 0.06, 1);
+}
+
+async function startMatch(withFoe) {
+  S.playerName = '我';
+  S.pkg = null;
+  S.charObj = null;
+  S.me.avatar = '';
+
+  if (G) {
+    try {
+      const p = await G.getPlayerProfile();
+      if (p && p.name) S.playerName = p.name;
+      if (p && p.avatar) S.me.avatar = p.avatar;
+    } catch (e) {}
+  }
+  S.me.name = S.playerName;
+  setAvatar(el.avMe, S.me.name, S.me.avatar);
+
+  if (withFoe && selId) {
+    const c = chars.filter(function (x) { return x.id === selId; })[0] || { id: selId, name: '对手' };
+    S.charObj = c;
+    S.foe.name = c.name;
+    S.foe.avatar = c.avatar || '';
+    if (G) { try { S.pkg = await G.getRoleLightPackage(selId); } catch (e) { S.pkg = null; } }
+    S.foe.skill = skillOf(c, S.pkg);
+  } else {
+    S.foe.name = '影子';
+    S.foe.avatar = '';
+    S.foe.skill = 0.72;
+  }
+  setAvatar(el.avFoe, S.foe.name, S.foe.avatar);
+
+  if (!isUnlocked(S.outfit)) S.outfit = OUTFITS[0];
+  S.me.skin = S.outfit;
+  S.foe.skin = foeOutfit(S.me.skin);
+
+  S.chargeMs = LV.chargeMs;
+  buildBlocks();
+  ['me', 'foe'].forEach(function (k) {
+    const p = S[k];
+    p.idx = 0; p.lives = 3; p.score = 0; p.alive = true;
+    p.squash = 0; p.alpha = 1; p.jumpY = 0; p.fallY = 0;
+    p.mood = 0; p.streak = 0;
+    p.x = centerOf(0);
+  });
+  S.autoLeft = AUTO_PER_MATCH;
+  S.turn = 'me';
+  S.jump = null; S.falling = null; S.aiHold = null; S.ended = false;
+  S.cam = S.me.x - W * 0.34;
+  S.camTarget = S.cam;
+  S.phase = 'ready';
+
+  el.pick.classList.add('hide');
+  el.over.classList.add('hide');
+  const lt = $('lockToast'); if (lt) lt.classList.remove('show');
+  const bw = $('bubbleWrap'); if (bw) bw.classList.add('hide');
+  el.bar.style.width = '0%';
+  el.hint.textContent = LV.name + ' 关卡 · 跳到方块中央有额外加分';
+  renderAutoBtn();
+  updateHUD();
+  setBtns(true);
+  S.bank = { praise: [], taunt: [], selfMock: [], lead: [] };
+  S.bankBusy = false;
+  say('', LV.name + '关卡。你先来，按住不放蓄力，松手跳出去', 2200);
+  prefetchLines();
+  setTimeout(function () {
+    if (!S.ended && S.phase === 'ready') foeSay('lead', 'start');
+  }, 2800);
+}
+
+function backToPick() {
+  S.phase = 'pick';
+  S.autoLeft = AUTO_PER_MATCH;
+  renderAutoBtn();
+  S.jump = null; S.falling = null; S.aiHold = null;
+  el.over.classList.add('hide');
+  el.pick.classList.remove('hide');
+  el.bar.style.width = '0%';
+  el.tap.disabled = true;
+  el.tap.textContent = '按住蓄力 · 松手起跳';
+  el.say.classList.remove('show');
+  updateHUD();
+}
+
+/* ================= 主循环 ================= */
+let lastT = 0, raf = 0;
+
+function loop(now) {
+  raf = requestAnimationFrame(loop);
+  const dt = lastT ? Math.min(0.05, (now - lastT) / 1000) : 0.016;
+  lastT = now;
+  update(dt, now);
+  render(now);
+}
+
+function update(dt, now) {
+  if (S.phase === 'charging') {
+    const p = clamp((now - S.chargeStart) / S.chargeMs, 0, 1);
+    el.bar.style.width = (p * 100).toFixed(1) + '%';
+  }
+  if (S.phase === 'ai' && S.aiHold && S.aiHold.t0) {
+    const pr = clamp((now - S.aiHold.t0) / S.chargeMs, 0, 1);
+    el.bar.style.width = (Math.min(pr, S.aiHold.target) * 100).toFixed(1) + '%';
+    if (pr >= S.aiHold.target) {
+      const pw = S.aiHold.target;
+      S.aiHold = null;
+      doJump(S.foe, pw);
+    }
+  }
+  if (S.jump) {
+    const j = S.jump, p = S[j.who];
+    j.t += dt;
+    const pr = Math.min(1, j.t / j.dur);
+    p.x = lerp(j.from, j.to, pr);
+    p.jumpY = Math.sin(Math.PI * pr) * j.peak;
+    if (pr >= 1) {
+      p.jumpY = 0;
+      const to = j.to;
+      S.jump = null;
+      land(p, to);
+    }
+  }
+  if (S.falling) {
+    const f = S.falling, p = S[f.who];
+    f.t += dt;
+    p.fallY = (p.fallY || 0) + dt * dt * 2200 + dt * 90;
+    p.alpha = clamp(1 - f.t * 1.1, 0, 1);
+    if (f.t > 0.55) {
+      S.falling = null;
+      afterFall(p);
+    }
+  }
+  ['me', 'foe'].forEach(function (k) {
+    const p = S[k];
+    if (p.squash > 0) p.squash = Math.max(0, p.squash - dt * 3.6);
+  });
+  const actor = S[S.turn] || S.me;
+  S.camTarget = actor.x - W * 0.34;
+  S.cam = lerp(S.cam, S.camTarget, Math.min(1, dt * 6));
+}
+
+function doJump(p, power) {
+  const dist = MIN_DIST + power * (MAX_DIST - MIN_DIST);
+  const to = p.x + dist;
+  S.jump = { who: p.key, from: p.x, to: to, dur: 0.30 + dist / 900, t: 0, peak: 30 + dist * 0.17 };
+  S.phase = 'jumping';
+  el.bar.style.width = '0%';
+  el.hint.textContent = '';
+  setBtns(false);
+}
+
+function land(p, x) {
+  const bi = blockAt(x);
+  const expect = p.idx + 1;
+  if (bi === expect) {
+    p.idx = bi;
+    p.streak = (p.streak || 0) + 1;
+    const off = Math.abs(x - centerOf(bi));
+    const bw = S.blocks[bi].w;
+    const perfectAt = Math.max(4.5, bw * 0.13);
+    const goodAt = Math.max(10, bw * 0.32);
+    const isPerfect = off <= perfectAt;
+    let bonus = 0, txt = '+1', cls = '';
+    if (isPerfect) { bonus = 3; txt = '完美 +4'; cls = 'perfect'; }
+    else if (off <= goodAt) { bonus = 1; txt = '不错 +2'; }
+    p.score += 1 + bonus;
+    p.squash = 1;
+    updateHUD();
+    mark(txt, p.x - S.cam, groundY - 62, cls);
+    if (isPerfect) playTick();
+    onLandGood(p, isPerfect);
+    if (p.idx >= S.blocks.length - 1) { endGame('finish', p.key); return; }
+    nextTurn();
+  } else {
+    p.lives = Math.max(0, p.lives - 1);
+    p.streak = 0;
+    p.mood = 0;
+    updateHUD();
+    mark(bi === p.idx ? '太近了' : '跳空了', p.x - S.cam, groundY - 62, 'bad');
+    onLandBad(p, bi === p.idx);
+    if (bi === p.idx) {
+      p.x = centerOf(p.idx);
+      afterFall(p);
+    } else {
+      S.falling = { who: p.key, t: 0 };
+      S.phase = 'falling';
+    }
+  }
+}
+
+function afterFall(p) {
+  p.jumpY = 0;
+  p.alpha = 1;
+  p.fallY = 0;
+  p.squash = 1;
+  if (p.lives <= 0) { endGame('out', p.key); return; }
+  p.x = centerOf(p.idx);
+  nextTurn();
+}
+
+function nextTurn() {
+  if (S.ended) return;
+  const other = S.turn === 'me' ? 'foe' : 'me';
+  S.turn = other;
+  S.phase = 'ready';
+  updateHUD();
+  setBtns(S.turn === 'me');
+  if (S.turn === 'me') {
+    el.hint.textContent = '按住按钮蓄力，松手起跳';
+  } else {
+    el.hint.textContent = S.foe.name + ' 正在瞄准…';
+    startAI();
+  }
+}
+
+function startAI() {
+  if (S.ended) return;
+  const power = aiPower(S.foe);
+  S.phase = 'ai';
+  S.aiHold = { t0: 0, target: power };
+  const think = 320 + (1 - S.foe.skill) * 420 + rand(0, 220);
+  setTimeout(function () {
+    if (S.phase === 'ai' && S.aiHold) S.aiHold.t0 = performance.now();
+  }, think);
+}
+
+/* ================= 角色台词 ================= */
+const LINE = {
+  start: ['来吧。', '先让你一局。', '准备好了吗。', '慢慢来。', '别紧张。', '我等着。', '开始吧。', '手别抖。'],
+  player_perfect: ['正中。', '这一下挺准。', '有点意思。', '手很稳。', '还真敢跳。', '算你厉害。'],
+  player_good: ['还行。', '跟上了。', '不错。', '勉强。', '有点样子。', '继续。'],
+  player_miss: ['……掉了。', '差一点。', '脚下留神。', '别急。', '啧。', '再来吧。', '手抖了？'],
+  foe_perfect: ['看到没。', '不偏不倚。', '就这样。', '学着点。', '稳得很。'],
+  foe_miss: ['……失手。', '这块太窄了。', '再来。', '失误而已。', '不算。', '手滑。'],
+  player_low: ['就剩一条命了。', '别慌。', '稳着点。', '还撑得住吗。'],
+  foe_low: ['我还没输。', '别高兴太早。', '还有机会。']
+};
+
+function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+const usedLines = {};
+function pickLine(key) {
+  const pool = LINE[key] || LINE.player_good;
+  const used = usedLines[key] || (usedLines[key] = []);
+  let cands = pool.filter(function (t) { return used.indexOf(t) === -1; });
+  if (cands.length === 0) { usedLines[key] = []; cands = pool.slice(); }
+  const t = cands[Math.floor(Math.random() * cands.length)];
+  usedLines[key].push(t);
+  return t;
+}
+
+S.bank = { praise: [], taunt: [], selfMock: [], lead: [] };
+S.bankBusy = false;
+
+function bankTotal() {
+  return S.bank.praise.length + S.bank.taunt.length + S.bank.selfMock.length + S.bank.lead.length;
+}
+
+function takeFromBank(tag) {
+  const arr = S.bank[tag];
+  if (!arr || !arr.length) return null;
+  const t = arr.shift();
+  if (bankTotal() <= 2) prefetchLines();
+  return t;
+}
+
+function matchSituation() {
+  const me = S.me, foe = S.foe;
+  const lead = me.score > foe.score ? '你落后' : (me.score < foe.score ? '你领先' : '比分持平');
+  return '当前：' + LV.name + '关卡，' + me.name + ' ' + me.score + ' 分 / ' + me.lives + ' 条命，' +
+    foe.name + '（你） ' + foe.score + ' 分 / ' + foe.lives + ' 条命，' + lead + '。';
+}
+
+function parseLineBank(text) {
+  if (!text) return null;
+  const start = text.indexOf('{');
+  const end = text.lastIndexOf('}');
+  if (start === -1 || end <= start) return null;
+  try { return JSON.parse(text.slice(start, end + 1)); } catch (e) { return null; }
+}
+
+async function prefetchLines() {
+  if (!G || !S.charObj || !S.charObj.id || S.bankBusy) return;
+  if (S.phase === 'pick') return;
+  S.bankBusy = true;
+  try {
+    const r = await G.callLLM({
+      characterId: S.charObj.id,
+      messages: ((S.pkg && S.pkg.messages) || []).concat([
+        { role: 'system', content: '你们正在玩手机小游戏《跳一跳》：轮流按住蓄力、松手跳到下一个方块上，跳空会掉下去，每人三条命。请你用自己一贯的身份、性格和说话习惯，为接下来的场面准备几句极短台词。要求：口语化、有你的个人语气、贴合你俩的关系，不超过16个字，不要动作描写、不要括号、不要引号，各类之间不要重复。只输出一段 JSON，不要解释。' },
+        { role: 'user', content: '返回 JSON：{"praise":["对方跳得好时你说的3句"],"taunt":["对方失误时你说的3句"],"selfMock":["你自己失误时说的3句"],"lead":["你领先或跳得漂亮时说的2句"]}。' + matchSituation() }
+      ])
+    });
+    const bank = parseLineBank(r && r.content ? String(r.content) : '');
+    if (bank) {
+      ['praise', 'taunt', 'selfMock', 'lead'].forEach(function (k) {
+        if (!Array.isArray(bank[k])) return;
+        bank[k].forEach(function (t) {
+          if (typeof t === 'string' && t.trim()) {
+            const clean = t.trim().replace(/^["“'「『]+|["”'」』]+$/g, '').slice(0, 24);
+            if (clean && S.bank[k].indexOf(clean) === -1) S.bank[k].push(clean);
+          }
+        });
+      });
+    }
+  } catch (e) {
+  } finally {
+    S.bankBusy = false;
+  }
+}
+
+function foeSay(tag, fallbackKey) {
+  if (S.phase === 'pick' || S.ended) return;
+  const banked = takeFromBank(tag);
+  if (banked) { say(S.foe.name, banked, 2400); return; }
+  say(S.foe.name, pickLine(fallbackKey), 2400);
+  prefetchLines();
+}
+
+function onLandGood(p, isPerfect) {
+  if (!isPerfect) return;
+  if (p.key === 'me') foeSay('praise', 'player_perfect');
+  else foeSay('lead', 'foe_perfect');
+}
+
+function onLandBad(p, shortJump) {
+  if (p.key === 'me') {
+    foeSay('taunt', 'player_miss');
+    if (S.me.lives === 1) setTimeout(function () { foeSay('taunt', 'player_low'); }, 1500);
+  } else {
+    foeSay('selfMock', 'foe_miss');
+    if (S.foe.lives === 1) setTimeout(function () { foeSay('lead', 'foe_low'); }, 1500);
+  }
+}
+
+/* ================= 结算 ================= */
+function endGame(reason, outKey) {
+  if (S.ended) return;
+  S.ended = true;
+  S.phase = 'over';
+  S.jump = null;
+  S.falling = null;
+  S.aiHold = null;
+  el.bar.style.width = '0%';
+  setBtns(false);
+  updateHUD();
+
+  const me = S.me, foe = S.foe;
+  let winner = null;
+  if (reason === 'out') winner = outKey === 'me' ? 'foe' : 'me';
+  else winner = me.score > foe.score ? 'me' : (foe.score > me.score ? 'foe' : 'tie');
+
+  const iWin = winner === 'me';
+  el.overTitle.textContent = iWin ? '你赢了' : (winner === 'tie' ? '平局' : '这局输了');
+  el.bigScore.textContent = me.score + ' : ' + foe.score;
+  el.winner.textContent = winner === 'tie'
+    ? '势均力敌'
+    : ((winner === 'me' ? me.name : foe.name) + ' 获胜');
+  el.c1n.textContent = me.name;
+  el.c1v.textContent = me.score;
+  el.c2n.textContent = foe.name;
+  el.c2v.textContent = foe.score;
+  el.cmt.textContent = winner === 'tie' ? '跟着节奏走，下一局就能拉开差距。'
+    : (iWin ? '你稳稳压住了节奏。' : foe.name + ' 落点更稳一些。');
+  el.over.classList.remove('hide');
+
+  if (me.score > S.best) S.best = me.score;
+  if (iWin) S.wins += 1;
+  renderSkins();
+  refreshUnlocks();
+  persist();
+  writeMemory(winner).then(function (recorded) {
+    afterGameChat(winner, recorded);
+  });
+}
+
+async function persist() {
+  if (!G) return;
+  try {
+    await G.saveGame({
+      best: S.best, wins: S.wins, outfit: S.outfit.id, seenOutfits: S.seenOutfits, at: Date.now()
+    });
+  } catch (e) {}
+}
+
+function writeMemory(winner) {
+  if (!G || !S.charObj || !S.charObj.id) return Promise.resolve(false);
+  const me = S.me, foe = S.foe;
+  const res = winner === 'tie' ? '打成平手' : (winner === 'me' ? me.name + '赢了' : foe.name + '赢了');
+  const summary = me.name + '和' + foe.name + '在《跳一跳》的' + LV.name + '关卡玩了一局，比分 ' +
+    me.score + ':' + foe.score + '，' + res + '。' + me.name + (winner === 'me'
+      ? '跳得挺稳，最后笑着收下这一局。' : '有几跳手滑掉下去，输得不太服气，约好还要再来一局。') +
+    '游戏结束后' + foe.name + '还发消息聊了几句这局。';
+  S.previewOnly = false;
+  return Promise.resolve(G.recordGameEvent({ characterIds: [S.charObj.id], summary: summary }))
+    .then(function (r) {
+      S.previewOnly = !!(r && r.preview);
+      return !S.previewOnly;
+    })
+    .catch(function () { return false; });
+}
+
+const CHAT_FALLBACK = {
+  win: ['……这局算你的。', '手感不错啊，下一局我不会输。', '行吧，我服一次。'],
+  lose: ['赢了就跑？再来一局。', '你手滑那几下我可都看见了。', '这局我记下了。'],
+  tie: ['平局，下次分个高下。']
+};
+
+function trySendToChat(text) {
+  if (!G || !S.charObj || !S.charObj.id) return Promise.resolve(false);
+  const cid = S.charObj.id;
+  try {
+    if (typeof G.sendChatMessage === 'function') {
+      return Promise.resolve(G.sendChatMessage({ characterId: cid, text: text }))
+        .then(function (r) { return !!(r && r.ok && r.delivered > 0); })
+        .catch(function () { return false; });
+    }
+    if (typeof G.sendMessage === 'function') {
+      G.sendMessage({ characterId: cid, text: text });
+      return Promise.resolve(true);
+    }
+    if (G.chat && typeof G.chat.send === 'function') {
+      G.chat.send({ characterId: cid, text: text });
+      return Promise.resolve(true);
+    }
+  } catch (e) {}
+  return Promise.resolve(false);
+}
+
+async function afterGameChat(winner, recorded) {
+  const wrap = $('bubbleWrap'), bub = $('chatBubble'), who = $('bubbleWho');
+  if (!wrap || !bub) return;
+  if (!G || !S.charObj || !S.charObj.id) { wrap.classList.add('hide'); return; }
+
+  const me = S.me, foe = S.foe;
+  const resTxt = winner === 'me' ? me.name + ' 赢了' : (winner === 'foe' ? foe.name + ' 赢了' : '平局');
+  const fbKey = winner === 'tie' ? 'tie' : (winner === 'me' ? 'win' : 'lose');
+
+  who.textContent = foe.name + ' 发来一条消息';
+  wrap.classList.remove('hide');
+  bub.innerHTML = '<span class="loader"></span>正在组织语言…';
+
+  let text = '';
+  try {
+    const r = await G.callLLM({
+      characterId: S.charObj.id,
+      messages: ((S.pkg && S.pkg.messages) || []).concat([
+        { role: 'system', content: '你们刚在手机上玩完《跳一跳》小游戏：轮流按住蓄力、松手跳方块，跳空会掉下去，每人三条命。现在你主动给对方发一条消息聊这局。用你自己的身份和说话习惯，一到两句，40字以内，像日常聊天那样自然，可以吐槽落点、不服气、炫耀手感或约下次。只输出消息内容本身，不要引号、括号和旁白。' },
+        { role: 'user', content: '本局：难度' + LV.name + '，' + me.name + ' ' + me.score + ' 分，你（' + foe.name + '）' + foe.score + ' 分，' + resTxt + '。' }
+      ])
+    });
+    text = r && r.content ? String(r.content).trim() : '';
+  } catch (e) { text = ''; }
+
+  text = text.replace(/^["“'「『]+|["”'」』]+$/g, '')
+    .split('\n').filter(function (s) { return s && s.trim(); })[0] || '';
+  text = text.trim().slice(0, 120) || pick(CHAT_FALLBACK[fbKey]);
+  bub.textContent = text;
+
+  if (recorded === false || S.previewOnly) {
+    who.textContent = foe.name + ' 说（本次未写入记忆）';
+    if (!wrap.querySelector('.previewTip')) {
+      const tip = document.createElement('div');
+      tip.className = 'previewTip';
+      tip.textContent = '这局没有写进角色记忆，可能没有启用高级游戏权限，或当前处于预览模式。';
+      wrap.appendChild(tip);
+    }
+    return;
+  }
+
+  const delivered = await trySendToChat(text);
+  if (delivered) {
+    who.textContent = foe.name + ' 已发到聊天';
+  } else {
+    who.textContent = foe.name + ' 发来一条消息（回去聊天，它会接着这局说）';
+  }
+  try {
+    G.saveGame({ best: S.best, wins: S.wins, outfit: S.outfit.id, lastChat: text, at: Date.now() });
+  } catch (e) {}
+}
+
+/* ================= 渲染 ================= */
+function roundRect(x, y, w, h, r) {
+  r = Math.min(r, w / 2, h / 2);
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  ctx.lineTo(x + r, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+  ctx.lineTo(x, y + r);
+  ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
+}
+
+function drawBg(now) {
+  const cam = S.cam * 0.3;
+  ctx.save();
+  for (let i = 0; i < 26; i++) {
+    const seed = (i * 977) % 1000;
+    const px = (((seed * 1.7 - cam) % (W + 120)) + W + 120) % (W + 120) - 60;
+    const py = (seed % 100) / 100 * groundY * 0.86;
+    const tw = 0.35 + 0.35 * Math.sin(now / 900 + i);
+    ctx.globalAlpha = 0.10 + tw * 0.22;
+    ctx.fillStyle = i % 3 === 0 ? '#a78bfa' : '#6ee7ff';
+    ctx.beginPath();
+    ctx.arc(px, py, 1.1 + (seed % 7) / 7, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+  const g = ctx.createLinearGradient(0, groundY - 90, 0, groundY + 4);
+  g.addColorStop(0, 'rgba(110,231,255,0)');
+  g.addColorStop(1, 'rgba(110,231,255,.14)');
+  ctx.fillStyle = g;
+  ctx.fillRect(0, groundY - 90, W, 94);
+  ctx.restore();
+}
+
+function drawBlock(b, sx, i) {
+  const h = 72 + b.seed * 84;
+  const x = Math.round(sx), w = b.w;
+  const grad = ctx.createLinearGradient(0, groundY, 0, groundY + h);
+  grad.addColorStop(0, 'rgba(80,110,200,.42)');
+  grad.addColorStop(1, 'rgba(24,32,64,.16)');
+  ctx.fillStyle = grad;
+  roundRect(x, groundY, w, h + 200, 8);
+  ctx.fill();
+  ctx.fillStyle = 'rgba(150,185,255,.30)';
+  roundRect(x, groundY, w, 4, 2);
+  ctx.fill();
+  const cx = x + w / 2;
+  ctx.globalAlpha = 0.55;
+  ctx.fillStyle = '#9fd8ff';
+  ctx.beginPath();
+  ctx.arc(cx, groundY + 1.5, 2, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.globalAlpha = 1;
+}
+
+function wingSpread(p) {
+  const lift = p.jumpY || 0;
+  const peak = (S.jump && S.jump.who === p.key) ? S.jump.peak : 120;
+  const t = clamp(lift / Math.max(40, peak), 0, 1);
+  return Math.pow(t, 0.62);
+}
+
+function drawSeraphBody(p, skin, now, w, h, topY, headY, hr) {
+  const px = p.x - S.cam;
+  const spread = wingSpread(p);
+  const flapPhase = now / 1000 * (5 + spread * 4);
+
+  function drawAngelWing(dir, back, phase) {
+    const sc = back ? 1.12 : 1;
+    const L = (11 + spread * 23) * sc;
+    const Hh = (7 + spread * 15) * sc;
+    const lift = Math.sin(phase) * 1.1 * spread;
+    const bx = px + dir * w * 0.10;
+    const by = topY + h * 0.40;
+
+    ctx.save();
+    ctx.translate(bx, by);
+    ctx.scale(dir, 1);
+    ctx.translate(0, -lift);
+
+    ctx.fillStyle = back ? '#e4ecf9' : '#ffffff';
+    ctx.globalAlpha = p.alpha * (back ? 0.55 : 0.95);
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.quadraticCurveTo(L * 0.42, -Hh * 1.18, L, -Hh * 0.86);
+    ctx.quadraticCurveTo(L * 0.94, -Hh * 0.34, L * 0.74, -Hh * 0.30);
+    ctx.quadraticCurveTo(L * 0.84, -Hh * 0.06, L * 0.56, -Hh * 0.06);
+    ctx.quadraticCurveTo(L * 0.62, Hh * 0.16, L * 0.34, Hh * 0.06);
+    ctx.quadraticCurveTo(L * 0.34, Hh * 0.30, L * 0.08, Hh * 0.12);
+    ctx.closePath();
+    ctx.fill();
+
+    if (!back) {
+      ctx.globalAlpha = p.alpha * 0.9;
+      ctx.fillStyle = '#dfe8f6';
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.quadraticCurveTo(L * 0.26, -Hh * 0.55, L * 0.52, -Hh * 0.40);
+      ctx.quadraticCurveTo(L * 0.50, -Hh * 0.10, L * 0.30, Hh * 0.04);
+      ctx.quadraticCurveTo(L * 0.18, Hh * 0.10, 0, 0);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.globalAlpha = p.alpha * 0.55;
+      ctx.strokeStyle = 'rgba(170,190,220,.85)';
+      ctx.lineWidth = 0.8;
+      for (let i = 1; i <= 3; i++) {
+        const t = i / 4;
+        ctx.beginPath();
+        ctx.moveTo(L * 0.05, -Hh * 0.04);
+        ctx.quadraticCurveTo(L * (0.40 + t * 0.18), -Hh * (0.20 + t * 0.44),
+          L * (0.62 + t * 0.20), -Hh * (0.10 + t * 0.50));
+        ctx.stroke();
+      }
+    }
+
+    ctx.restore();
+    ctx.globalAlpha = p.alpha;
+  }
+
+  drawAngelWing(-1, true, flapPhase);
+  drawAngelWing(1, true, flapPhase + 1.2);
+  drawAngelWing(-1, false, flapPhase + 0.6);
+  drawAngelWing(1, false, flapPhase + 1.8);
+
+  ctx.shadowColor = skin.glow;
+  ctx.shadowBlur = 16;
+  ctx.fillStyle = skin.body;
+  roundRect(px - w / 2, topY, w, h, 7);
+  ctx.fill();
+
+  const headR = hr;
+  ctx.beginPath();
+  ctx.arc(px, headY, headR, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.shadowBlur = 0;
+
+  ctx.globalAlpha = p.alpha * 0.5;
+  ctx.fillStyle = '#ffffff';
+  roundRect(px - w / 2 + 2.5, topY + 3, 3, h - 7, 1.5);
+  ctx.fill();
+  ctx.globalAlpha = p.alpha;
+
+  const bob = Math.sin(now / 460) * 1.4;
+  ctx.strokeStyle = skin.glow;
+  ctx.lineWidth = 1.8;
+  ctx.shadowColor = skin.glow;
+  ctx.shadowBlur = 10;
+  ctx.beginPath();
+  ctx.ellipse(px, headY - headR - 4.6 + bob, 6.2, 2.2, 0, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.shadowBlur = 0;
+}
+
+function drawPawn(p, skin, active, now) {
+  const x = p.x - S.cam;
+  const gy = groundY;
+  const baseY = gy + (p.fallY || 0);
+  const sq = p.squash;
+  const h = 21 * (1 - sq * 0.30);
+  const w = 15 * (1 + sq * 0.22);
+  const lift = p.jumpY || 0;
+  const topY = baseY - h - lift;
+  const color = skin.body;
+  const hr = 6.2;
+  const headY = topY - hr + 1;
+
+  if (x < -80 || x > W + 80) return;
+  ctx.save();
+  ctx.globalAlpha = p.alpha;
+
+  if (lift > 2 && S.jump && S.jump.who === p.key) {
+    const j = S.jump;
+    const pr = clamp(j.t / j.dur, 0, 1);
+    const feathers = skin.hat === 'seraph';
+    const count = feathers ? 9 : 3;
+    for (let k = 1; k <= count; k++) {
+      const kp = pr - k * (feathers ? 0.048 : 0.09);
+      if (kp <= 0) continue;
+      const fade = feathers ? Math.pow(1 - k / (count + 1), 1.8) : (0.26 - k * 0.06);
+      const tx = lerp(j.from, j.to, kp) - S.cam + Math.sin(now / 420 + k * 1.7) * 3;
+      const ty = gy - Math.sin(Math.PI * kp) * j.peak - h * 0.6 + Math.cos(now / 520 + k) * 2.5;
+      ctx.globalAlpha = p.alpha * fade * 0.55;
+      ctx.fillStyle = skin.glow;
+      if (feathers) {
+        const size = 2.6 * (1 - k / (count + 2));
+        ctx.beginPath();
+        ctx.ellipse(tx, ty, size, size * 0.52, Math.sin(now / 400 + k) * 1.1, 0, Math.PI * 2);
+        ctx.fill();
+      } else {
+        ctx.beginPath();
+        ctx.arc(tx, ty, 4.5 - k, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+    ctx.globalAlpha = p.alpha;
+  }
+
+  if (p.alpha > 0.4) {
+    const sh = clamp(1 - lift / 220, 0.25, 1);
+    ctx.globalAlpha = p.alpha * 0.28 * sh;
+    ctx.fillStyle = '#000';
+    ctx.beginPath();
+    ctx.ellipse(x, gy + 2, 11 * sh, 3.4 * sh, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.globalAlpha = p.alpha;
+  }
+
+  if (active) {
+    const pu = 0.55 + 0.45 * Math.sin(now / 320);
+    ctx.strokeStyle = skin.glow;
+    ctx.globalAlpha = p.alpha * 0.5 * pu;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.ellipse(x, gy + 1, 15, 5, 0, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.globalAlpha = p.alpha;
+  }
+
+  if (skin.hat === 'seraph') {
+    drawSeraphBody(p, skin, now, w, h, topY, headY, hr);
+    ctx.restore();
+    return;
+  }
+
+  ctx.shadowColor = skin.glow;
+  ctx.shadowBlur = 12 + skin.aura * 12;
+  ctx.fillStyle = color;
+  roundRect(x - w / 2, topY, w, h, 7);
+  ctx.fill();
+
+  if (skin.scarf) {
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = skin.scarf;
+    roundRect(x - 7, topY - 2.5, 14, 4.2, 2.1);
+    ctx.fill();
+    ctx.fillStyle = color;
+  }
+
+  ctx.beginPath();
+  ctx.arc(x, headY, hr, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.shadowBlur = 0;
+
+  if (skin.hat === 'tail') {
+    const wave = Math.sin(now / 260 + (p.key === 'me' ? 0 : 1.7)) * 3;
+    ctx.strokeStyle = skin.glow;
+    ctx.lineWidth = 2.4;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(x - w / 2 + 1, topY + h * 0.55);
+    ctx.quadraticCurveTo(x - w / 2 - 7, topY + h * 0.30 + wave, x - w / 2 - 5, topY - 2 + wave);
+    ctx.stroke();
+    ctx.fillStyle = skin.glow;
+    ctx.beginPath();
+    ctx.arc(x - w / 2 - 5, topY - 2 + wave, 2, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  if (skin.hat === 'wings') {
+    const flap = 0.6 + 0.4 * Math.sin(now / 200 + (p.key === 'me' ? 0 : 2.1));
+    ctx.fillStyle = skin.glow;
+    ctx.globalAlpha = p.alpha * (0.45 + flap * 0.3);
+    [-1, 1].forEach(function (dir) {
+      ctx.beginPath();
+      ctx.moveTo(x + dir * (w / 2 - 1), topY + 5);
+      ctx.quadraticCurveTo(x + dir * (w / 2 + 9), topY + 1 - flap * 3, x + dir * (w / 2 + 5), topY + 12);
+      ctx.quadraticCurveTo(x + dir * (w / 2 + 3), topY + 9, x + dir * (w / 2 - 1), topY + 9);
+      ctx.closePath();
+      ctx.fill();
+    });
+    ctx.globalAlpha = p.alpha;
+  }
+
+  if (skin.hat === 'halo') {
+    const bob = Math.sin(now / 420) * 1.2;
+    ctx.strokeStyle = skin.glow;
+    ctx.lineWidth = 2;
+    ctx.globalAlpha = p.alpha * 0.85;
+    ctx.beginPath();
+    ctx.ellipse(x, headY - hr - 4.5 + bob, 7, 2.6, 0, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.globalAlpha = p.alpha;
+  }
+
+  if (skin.hat === 'bow') {
+    ctx.fillStyle = skin.glow;
+    ctx.beginPath();
+    ctx.arc(x - 4.6, headY - hr + 1, 2.5, 0, Math.PI * 2);
+    ctx.arc(x + 4.6, headY - hr + 1, 2.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = skin.scarf || '#ffffff';
+    ctx.beginPath();
+    ctx.arc(x, headY - hr + 1, 1.5, 0, Math.PI * 2);
+    ctx.fill();
+  } else if (skin.hat === 'cap') {
+    ctx.fillStyle = skin.glow;
+    ctx.beginPath();
+    ctx.arc(x, headY - 1, hr + 0.6, Math.PI, Math.PI * 2);
+    ctx.fill();
+    roundRect(x - hr - 3.4, headY - 1.6, (hr + 3.4) * 2, 2.4, 1.2);
+    ctx.fill();
+  } else if (skin.hat === 'crown') {
+    const by = headY - hr + 1;
+    ctx.fillStyle = '#ffd479';
+    ctx.beginPath();
+    ctx.moveTo(x - 5, by);
+    ctx.lineTo(x - 3.4, by - 4.4);
+    ctx.lineTo(x - 1.2, by - 1.2);
+    ctx.lineTo(x, by - 5.2);
+    ctx.lineTo(x + 1.2, by - 1.2);
+    ctx.lineTo(x + 3.4, by - 4.4);
+    ctx.lineTo(x + 5, by);
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  ctx.globalAlpha = p.alpha * 0.5;
+  ctx.fillStyle = '#ffffff';
+  roundRect(x - w / 2 + 2.5, topY + 3, 3, h - 7, 1.5);
+  ctx.fill();
+  ctx.restore();
+}
+
+function render(now) {
+  ctx.clearRect(0, 0, W, H);
+  drawBg(now);
+
+  for (let i = 0; i < S.blocks.length; i++) {
+    const b = S.blocks[i];
+    const sx = b.x - S.cam;
+    if (sx > W + 80 || sx + b.w < -80) continue;
+    drawBlock(b, sx, i);
+  }
+
+  const actor = S[S.turn] || S.me;
+  const nb = S.blocks[actor.idx + 1];
+  if (nb && S.phase !== 'pick' && S.phase !== 'over') {
+    const sx = nb.x - S.cam;
+    const pu = 0.35 + 0.35 * Math.sin(now / 380);
+    ctx.save();
+    ctx.globalAlpha = pu;
+    ctx.strokeStyle = S.turn === 'me' ? '#6ee7ff' : '#a78bfa';
+    ctx.lineWidth = 1.6;
+    ctx.setLineDash([5, 5]);
+    ctx.beginPath();
+    ctx.moveTo(sx, groundY - 1);
+    ctx.lineTo(sx + nb.w, groundY - 1);
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  drawPawn(S.foe, S.foe.skin || OUTFITS[1], S.turn === 'foe' && S.phase !== 'over', now);
+  drawPawn(S.me, S.me.skin || OUTFITS[0], S.turn === 'me' && S.phase !== 'over', now);
+}
+
+/* ================= 输入 ================= */
+function pressDown(e) {
+  if (e && e.cancelable) e.preventDefault();
+  ensureAudio();
+  if (S.phase !== 'ready' || S.turn !== 'me' || S.ended) return;
+  S.phase = 'charging';
+  S.chargeStart = performance.now();
+  el.hint.textContent = '松手！';
+  setBtns(true);
+}
+
+function pressUp(e) {
+  if (S.phase !== 'charging') return;
+  let power = clamp((performance.now() - S.chargeStart) / S.chargeMs, 0.05, 1);
+  if (S.autopilot && S.autoLeft > 0) {
+    power = perfectPower(S.me);
+    S.autoLeft -= 1;
+    if (S.autoLeft > 0) {
+      mark('自动 ×' + S.autoLeft, W * 0.5, groundY - 96, 'perfect');
+    } else {
+      S.autopilot = false;
+      mark('次数用完', W * 0.5, groundY - 96, 'bad');
+    }
+    renderAutoBtn();
+  }
+  el.bar.style.width = '0%';
+  doJump(S.me, power);
+}
+
+el.tap.addEventListener('pointerdown', pressDown);
+el.tap.addEventListener('touchstart', function (e) { e.preventDefault(); pressDown(e); }, { passive: false });
+window.addEventListener('pointerup', pressUp);
+window.addEventListener('pointercancel', pressUp);
+window.addEventListener('blur', function () { if (S.phase === 'charging') pressUp(); });
+document.addEventListener('contextmenu', function (e) { e.preventDefault(); });
+
+window.addEventListener('keydown', function (e) {
+  if (e.code === 'Space' || e.code === 'Enter') { e.preventDefault(); pressDown(); }
+});
+window.addEventListener('keyup', function (e) {
+  if (e.code === 'Space' || e.code === 'Enter') { e.preventDefault(); pressUp(); }
+});
+
+/* ================= 按钮 ================= */
+$('lvRow').addEventListener('click', function (e) {
+  const b = e.target.closest ? e.target.closest('.lv') : null;
+  if (!b) return;
+  const key = b.getAttribute('data-lv');
+  if (!LEVELS[key]) return;
+  LV = LEVELS[key];
+  Array.prototype.forEach.call($('lvRow').children, function (n) {
+    n.classList.toggle('on', n === b);
+  });
+  $('lvDesc').textContent = LV.desc;
+});
+
+el.startBtn.addEventListener('click', function () { ensureAudio(); if (selId) startMatch(true); });
+el.soloBtn.addEventListener('click', function () { ensureAudio(); startMatch(false); });
+el.backBtn.addEventListener('click', backToPick);
+el.againBtn.addEventListener('click', function () {
+  if (!S.charObj) { backToPick(); return; }
+  startMatch(true);
+});
+
+/* ================= 启动 ================= */
+resize();
+window.addEventListener('resize', function () { resize(); });
+window.addEventListener('aiphone:safe-area-change', function () { setTimeout(resize, 60); });
+if (window.visualViewport) window.visualViewport.addEventListener('resize', function () { setTimeout(resize, 60); });
+
+if (G && G.setTitleBar) {
+  try {
+    G.setTitleBar({
+      material: 'glass',
+      background: 'rgba(10,14,30,.55)',
+      color: '#eaf2ff',
+      borderColor: 'rgba(140,170,255,.18)',
+      buttonBackground: 'rgba(255,255,255,.08)',
+      buttonColor: '#eaf2ff',
+      buttonBorderColor: 'rgba(255,255,255,.14)',
+      buttonRadius: '999px',
+      iconOpacity: 1
+    });
+  } catch (e) {}
+}
+
+let devTapCount = 0, devTapTimer = null;
+function bindDevTap() {
+  const t = $('skinTitle');
+  if (!t) return;
+  t.addEventListener('click', function () {
+    devTapCount += 1;
+    clearTimeout(devTapTimer);
+    devTapTimer = setTimeout(function () { devTapCount = 0; }, 900);
+    if (devTapCount >= 3) {
+      devTapCount = 0;
+      S.devMode = !S.devMode;
+      renderSkins();
+      showLockToast(S.devMode ? '开发者模式已开启 · 全部造型可试' : '开发者模式已关闭');
+      saveSeenOutfits();
+    }
+  });
+}
+
+setBtns(false);
+updateHUD();
+bindDevTap();
+renderSkins();
+renderSoundBtn();
+renderAutoBtn();
+$('soundBtn').addEventListener('click', function (e) {
+  e.stopPropagation();
+  ensureAudio();
+  toggleSound();
+});
+$('autoBtn').addEventListener('click', function (e) {
+  e.stopPropagation();
+  ensureAudio();
+  toggleAuto();
+});
+initChars();
+loadSave();
+raf = requestAnimationFrame(loop);
+
+async function loadSave() {
+  if (!G) return;
+  try {
+    const s = await G.loadGame();
+    if (s && typeof s.best === 'number') S.best = s.best;
+    if (s && typeof s.wins === 'number') S.wins = s.wins;
+    if (s && s.seenOutfits && typeof s.seenOutfits === 'object') S.seenOutfits = s.seenOutfits;
+    if (s && typeof s.sound === 'boolean') soundOn = s.sound;
+    if (s && typeof s.autopilot === 'boolean') S.autopilot = s.autopilot;
+    if (s && typeof s.devMode === 'boolean') S.devMode = s.devMode;
+    S.autoLeft = AUTO_PER_MATCH;
+    renderSoundBtn();
+    renderAutoBtn();
+    if (s && typeof s.outfit === 'string') {
+      const picked = outfitById(s.outfit);
+      S.outfit = isUnlocked(picked) ? picked : OUTFITS[0];
+      S.me.skin = S.outfit;
+    }
+    renderSkins();
+    refreshUnlocks();
+    if (S.best > 0 && S.phase === 'pick') {
+      el.hint.textContent = '你的最佳单局得分：' + S.best + ' · 累计胜场 ' + S.wins;
+    }
+  } catch (e) {}
+}
+
+})();
+</script>
+</body>
+</html>`;
